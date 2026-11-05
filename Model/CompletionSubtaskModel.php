@@ -1,5 +1,5 @@
 <?php
-namespace Kanboard\Plugin\ScheduleExport\Model;
+namespace Kanboard\Plugin\ScheduleExchange\Model;
 
 /** Preserve native model behavior, including events and effort aggregation. */
 class CompletionSubtaskModel extends \Kanboard\Model\SubtaskModel
