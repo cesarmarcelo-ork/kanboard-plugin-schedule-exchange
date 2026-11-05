@@ -1,7 +1,7 @@
 <?php
 require __DIR__.'/../Model/SubtaskCompletionModel.php';
 require __DIR__.'/../Schema/Sqlite.php';
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskCompletionModel;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskCompletionModel;
 function ensure($ok, $message) { if (!$ok) throw new RuntimeException($message); }
 function rejected($fn) { try { $fn(); } catch (InvalidArgumentException $e) { return; } throw new RuntimeException('Expected validation failure'); }
 date_default_timezone_set('America/Sao_Paulo');
@@ -9,8 +9,8 @@ $pdo = new PDO('sqlite::memory:', null, null, array(PDO::ATTR_ERRMODE=>PDO::ERRM
 $pdo->exec('PRAGMA foreign_keys=ON');
 $pdo->exec('CREATE TABLE projects (id INTEGER PRIMARY KEY); CREATE TABLE tasks (id INTEGER PRIMARY KEY, project_id INT); CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT); CREATE TABLE subtasks (id INTEGER PRIMARY KEY, task_id INT, status INT)');
 $pdo->exec("INSERT INTO projects VALUES(1); INSERT INTO tasks VALUES(1,1); INSERT INTO users VALUES(1,'cesar'); INSERT INTO subtasks VALUES(1,1,2),(2,1,2),(3,1,0)");
-\Kanboard\Plugin\ScheduleExport\Schema\version_1($pdo);
-\Kanboard\Plugin\ScheduleExport\Schema\version_2($pdo);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_1($pdo);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_2($pdo);
 $m = new SubtaskCompletionModel($pdo);
 ensure($m->get(1) === null && $m->get(2) === null, 'Migration does not fabricate historical dates');
 $m->atomic(function () use ($m) { $m->transition(1, 1, 2, 1); });
