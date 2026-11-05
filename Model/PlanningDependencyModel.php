@@ -67,22 +67,25 @@ class PlanningDependencyModel
         }
 
         $lagDays = (int) $lagDays;
+        if ($lagDays < -3650 || $lagDays > 3650) {
+            throw new InvalidArgumentException('Dependency lag out of range');
+        }
         $now = time();
 
+        // One dependency per endpoint pair. Relation type and lag are properties
+        // of that dependency, not a way to create duplicate parallel links.
         $duplicate = $this->pdo->prepare(
             'SELECT id FROM schedule_exchange_dependencies
              WHERE project_id = ?
                AND from_entity_type = ? AND from_task_id = ?
                AND ((from_subtask_id IS NULL AND ? IS NULL) OR from_subtask_id = ?)
                AND to_entity_type = ? AND to_task_id = ?
-               AND ((to_subtask_id IS NULL AND ? IS NULL) OR to_subtask_id = ?)
-               AND relation_type = ? AND lag_days = ?'
+               AND ((to_subtask_id IS NULL AND ? IS NULL) OR to_subtask_id = ?)'
         );
         $duplicate->execute(array(
             $projectId,
             $from['type'], $from['task_id'], $from['subtask_id'], $from['subtask_id'],
-            $to['type'], $to['task_id'], $to['subtask_id'], $to['subtask_id'],
-            $relationType, $lagDays
+            $to['type'], $to['task_id'], $to['subtask_id'], $to['subtask_id']
         ));
         if ($duplicate->fetchColumn()) {
             throw new InvalidArgumentException('Dependency already exists');
