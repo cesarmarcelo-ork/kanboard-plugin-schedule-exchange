@@ -6,7 +6,7 @@ $canView = !empty($completion_project_id) && $this->user->hasProjectAccess('Subt
 ?>
 <td class="schedule-export-completion" style="white-space: nowrap;" title="<?= $timestamp ? $this->text->e($this->dt->datetime($timestamp)) : '' ?>">
     <?php if ($canView && ($done || !empty($completion))): ?>
-        <?= $this->url->link($this->text->e($label), 'SubtaskCompletionController', 'edit', array('plugin'=>'ScheduleExport', 'project_id'=>$completion_project_id, 'task_id'=>$subtask['task_id'], 'subtask_id'=>$subtask['id'])) ?>
+        <?= $this->url->link($this->text->e($label), 'SubtaskCompletionController', 'edit', array('plugin'=>'ScheduleExchange', 'project_id'=>$completion_project_id, 'task_id'=>$subtask['task_id'], 'subtask_id'=>$subtask['id'])) ?>
     <?php else: ?>
         <?= $this->text->e($label) ?>
     <?php endif ?>
