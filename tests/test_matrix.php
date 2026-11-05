@@ -1,7 +1,7 @@
 <?php
 /** Synthetic regression coverage. No private Kanboard snapshot is distributed. */
 require __DIR__ . '/../Exporter/ProjectXmlExporter.php';
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 if ($argc!==2 || !is_dir($argv[1])) {fwrite(STDERR,"Usage: php test_matrix.php output_dir\n");exit(2);}
 date_default_timezone_set('America/Sao_Paulo');
 $gen=new ProjectXmlExporter('America/Sao_Paulo');
