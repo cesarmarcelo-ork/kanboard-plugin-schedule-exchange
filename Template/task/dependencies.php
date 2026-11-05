@@ -47,7 +47,7 @@ $incoming = array_values(array_filter($planning_dependencies ?? array(), functio
                 <?php endif ?>
             <?php endforeach ?>
         </select>
-        <span style="margin-left:8px">FS · Lag 0</span>
+        <span style="margin-left:8px"><?= t('FS · Lag 0') ?></span>
         <button type="submit" class="btn btn-blue"><?= t('Add') ?></button>
     </form>
 </section>
