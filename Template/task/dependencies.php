@@ -36,7 +36,7 @@ $availableTasks = array_values(array_filter($planning_tasks ?? array(), function
 <section class="panel schedule-deps">
     <h3><?= t('Planning dependencies') ?></h3>
     <p class="schedule-deps__intro">
-        <?= t('Define which activity must finish before this card can start. For this first test, the relationship is FS with zero lag.') ?>
+        <?= t('Define the predecessor activity, the dependency relationship, and any lag or lead time.') ?>
     </p>
 
     <?php if (empty($incoming)): ?>
@@ -94,18 +94,31 @@ $availableTasks = array_values(array_filter($planning_tasks ?? array(), function
                 <?= $this->form->csrf() ?>
                 <div class="schedule-deps__select">
                     <select id="predecessor_task_id" name="predecessor_task_id" required>
-                        <option value=""><?= t('Select the activity that must finish first') ?></option>
+                        <option value=""><?= t('Select the predecessor activity') ?></option>
                         <?php foreach ($availableTasks as $candidate): ?>
                             <option value="<?= (int)$candidate['id'] ?>">
                                 <?= $this->text->e('#'.(int)$candidate['id'].' '.$candidate['title']) ?>
                             </option>
                         <?php endforeach ?>
                     </select>
-                    <span><strong><?= t('FS') ?></strong> · <?= t('Lag: 0 days') ?></span>
+
+                    <select id="relation_type" name="relation_type" required>
+                        <option value="FS"><?= t('FS — Finish to Start') ?></option>
+                        <option value="SS"><?= t('SS — Start to Start') ?></option>
+                        <option value="FF"><?= t('FF — Finish to Finish') ?></option>
+                        <option value="SF"><?= t('SF — Start to Finish') ?></option>
+                    </select>
+
+                    <label for="lag_days"><?= t('Lag (days)') ?></label>
+                    <input id="lag_days" name="lag_days" type="number" min="-3650" max="3650" step="1" value="0" style="width:90px">
+
                     <button type="submit" class="btn btn-blue"><?= t('Add predecessor') ?></button>
                 </div>
+
                 <div class="schedule-deps__hint">
-                    <?= t('Example: if Activity A is the predecessor of Activity B, B starts only after A finishes.') ?>
+                    <strong><?= t('Relationship guide:') ?></strong>
+                    <?= t('FS: successor starts after predecessor finishes; SS: both starts are linked; FF: both finishes are linked; SF: successor finishes after predecessor starts.') ?>
+                    <?= t('Use positive lag to delay the successor and negative lag to create lead time.') ?>
                 </div>
             </form>
         <?php endif ?>
