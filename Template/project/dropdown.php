@@ -5,7 +5,7 @@
             t('Export project schedule (.xml)'),
             'ScheduleExportController',
             'download',
-            array('project_id' => $project['id'], 'plugin' => 'ScheduleExport')
+            array('project_id' => $project['id'], 'plugin' => 'ScheduleExchange')
         ) ?>
     </li>
 <?php endif ?>
