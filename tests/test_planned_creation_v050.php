@@ -5,8 +5,8 @@ require __DIR__.'/../Schema/Sqlite.php';
 require __DIR__.'/../Model/SubtaskPlanModel.php';
 require __DIR__.'/../Model/PlannedSubtaskCreationService.php';
 
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
-use Kanboard\Plugin\ScheduleExport\Model\PlannedSubtaskCreationService;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Model\PlannedSubtaskCreationService;
 
 function assert050($ok, $message) { if (!$ok) throw new RuntimeException($message); }
 
@@ -32,7 +32,7 @@ $pdo->exec('CREATE TABLE tasks(id INTEGER PRIMARY KEY, project_id INTEGER NOT NU
 $pdo->exec('CREATE TABLE subtasks(id INTEGER PRIMARY KEY AUTOINCREMENT, task_id INTEGER NOT NULL, title TEXT)');
 $pdo->exec('INSERT INTO projects VALUES (1),(2)');
 $pdo->exec('INSERT INTO tasks VALUES (10,1)');
-\Kanboard\Plugin\ScheduleExport\Schema\version_1($pdo);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_1($pdo);
 
 $native = new FakeNativeCreator050($pdo);
 $plans = new SubtaskPlanModel($pdo);
