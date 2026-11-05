@@ -73,6 +73,16 @@ class Plugin extends Base
             'template:project:dropdown',
             'ScheduleExchange:project/dropdown'
         );
+
+        $this->template->hook->attachCallable(
+            'template:task:show:top',
+            'ScheduleExchange:task/planning',
+            function ($task, $project) {
+                return array(
+                    'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
+                );
+            }
+        );
     }
 
     public function onStartup()
