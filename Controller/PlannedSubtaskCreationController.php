@@ -26,7 +26,7 @@ class PlannedSubtaskCreationController extends BaseController
         }
 
         $this->response->html($this->helper->layout->task(
-            'ScheduleExport:subtask/create-planned',
+            'ScheduleExchange:subtask/create-planned',
             array(
                 'task' => $task,
                 'project' => $this->projectModel->getById($task['project_id']),
