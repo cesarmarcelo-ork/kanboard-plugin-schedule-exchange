@@ -7,12 +7,15 @@ use Kanboard\Core\Security\Role;
 use Kanboard\Core\Translator;
 
 /**
- * Read-only Kanboard schedule export to interoperable MSPDI XML.
+ * Schedule planning, dependency management and interoperable schedule exchange.
  */
 class Plugin extends Base
 {
     public function initialize()
     {
+        $this->container['scheduleDependencyModel'] = function ($container) {
+            return new \Kanboard\Plugin\ScheduleExchange\Model\PlanningDependencyModel($container['db']->getConnection());
+        };
         $this->container['subtaskModel'] = function ($container) {
             return new \Kanboard\Plugin\ScheduleExchange\Model\CompletionSubtaskModel($container);
         };
