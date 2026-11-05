@@ -89,4 +89,16 @@ return array(
     'Select the activity that must finish first' => 'Selecione a atividade que deve terminar primeiro',
     'Lag: 0 days' => 'Defasagem: 0 dias',
     'Example: if Activity A is the predecessor of Activity B, B starts only after A finishes.' => 'Exemplo: se a Atividade A é predecessora da Atividade B, B só inicia após o término de A.',
+    'Select a valid dependency relationship.' => 'Selecione um tipo de relação de dependência válido.',
+    'Enter a lag between -3650 and 3650 days.' => 'Informe uma defasagem entre -3650 e 3650 dias.',
+    'Define the predecessor activity, the dependency relationship, and any lag or lead time.' => 'Defina a atividade predecessora, o tipo de dependência e eventual defasagem ou antecipação.',
+    'Select the predecessor activity' => 'Selecione a atividade predecessora',
+    'FS — Finish to Start' => 'FS — Término para Início',
+    'SS — Start to Start' => 'SS — Início para Início',
+    'FF — Finish to Finish' => 'FF — Término para Término',
+    'SF — Start to Finish' => 'SF — Início para Término',
+    'Lag (days)' => 'Defasagem (dias)',
+    'Relationship guide:' => 'Guia das relações:',
+    'FS: successor starts after predecessor finishes; SS: both starts are linked; FF: both finishes are linked; SF: successor finishes after predecessor starts.' => 'FS: a sucessora inicia após o término da predecessora; SS: os inícios ficam vinculados; FF: os términos ficam vinculados; SF: a sucessora termina após o início da predecessora.',
+    'Use positive lag to delay the successor and negative lag to create lead time.' => 'Use defasagem positiva para atrasar a sucessora e valor negativo para criar antecipação.'
 );
