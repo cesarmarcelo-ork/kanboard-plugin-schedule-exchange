@@ -22,13 +22,13 @@ function version_1(PDO $pdo)
 
 function version_2(PDO $pdo)
 {
-    $pdo->exec("CREATE TABLE schedule_export_subtask_completions (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_export_subtask_completions (
         subtask_id INT PRIMARY KEY,
         completed_at BIGINT NULL,
         revision INT NOT NULL DEFAULT 0,
         FOREIGN KEY(subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     )");
-    $pdo->exec("CREATE TABLE schedule_export_completion_history (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_export_completion_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         subtask_id INT NOT NULL,
         previous_completed_at BIGINT NULL,
@@ -38,12 +38,12 @@ function version_2(PDO $pdo)
         changed_by INT NOT NULL,
         FOREIGN KEY(subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     )");
-    $pdo->exec('CREATE INDEX schedule_completion_history_subtask ON schedule_export_completion_history (subtask_id)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS schedule_completion_history_subtask ON schedule_export_completion_history (subtask_id)');
 }
 
 function version_3(PDO $pdo)
 {
-    $pdo->exec("CREATE TABLE schedule_exchange_dependencies (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_exchange_dependencies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INTEGER NOT NULL,
         from_entity_type VARCHAR(10) NOT NULL,
@@ -64,7 +64,7 @@ function version_3(PDO $pdo)
         FOREIGN KEY(to_task_id) REFERENCES tasks(id) ON DELETE CASCADE,
         FOREIGN KEY(to_subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     )");
-    $pdo->exec('CREATE INDEX schedule_exchange_dependencies_project ON schedule_exchange_dependencies (project_id)');
-    $pdo->exec('CREATE INDEX schedule_exchange_dependencies_from ON schedule_exchange_dependencies (from_task_id, from_subtask_id)');
-    $pdo->exec('CREATE INDEX schedule_exchange_dependencies_to ON schedule_exchange_dependencies (to_task_id, to_subtask_id)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS schedule_exchange_dependencies_project ON schedule_exchange_dependencies (project_id)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS schedule_exchange_dependencies_from ON schedule_exchange_dependencies (from_task_id, from_subtask_id)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS schedule_exchange_dependencies_to ON schedule_exchange_dependencies (to_task_id, to_subtask_id)');
 }
