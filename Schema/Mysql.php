@@ -1,5 +1,5 @@
 <?php
-namespace Kanboard\Plugin\ScheduleExport\Schema;
+namespace Kanboard\Plugin\ScheduleExchange\Schema;
 use PDO;
 const VERSION = 2;
 function version_1(PDO $pdo)
