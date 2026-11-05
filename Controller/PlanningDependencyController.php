@@ -18,6 +18,8 @@ class PlanningDependencyController extends BaseController
         $projectId = (int) $task['project_id'];
         $values = $this->request->getValues();
         $predecessorId = (int) ($values['predecessor_task_id'] ?? 0);
+        $relationType = strtoupper(trim((string)($values['relation_type'] ?? 'FS')));
+        $lagDays = (int)($values['lag_days'] ?? 0);
 
         try {
             $this->model()->create(
@@ -28,8 +30,8 @@ class PlanningDependencyController extends BaseController
                 PlanningDependencyModel::ENTITY_TASK,
                 (int) $task['id'],
                 null,
-                'FS',
-                0,
+                $relationType,
+                $lagDays,
                 (int) $this->userSession->getId()
             );
             $this->flash->success(t('Planning predecessor added successfully.'));
@@ -39,6 +41,10 @@ class PlanningDependencyController extends BaseController
                 $this->flash->failure(t('This predecessor is already registered for this activity.'));
             } elseif ($message === 'An activity cannot depend on itself') {
                 $this->flash->failure(t('An activity cannot be its own predecessor.'));
+            } elseif ($message === 'Invalid dependency relation type') {
+                $this->flash->failure(t('Select a valid dependency relationship.'));
+            } elseif ($message === 'Dependency lag out of range') {
+                $this->flash->failure(t('Enter a lag between -3650 and 3650 days.'));
             } else {
                 $this->flash->failure(t('Unable to add this planning predecessor.'));
             }
