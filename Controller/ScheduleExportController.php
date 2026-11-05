@@ -6,6 +6,7 @@ use Kanboard\Controller\BaseController;
 use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
 use Kanboard\Plugin\ScheduleExchange\Model\SubtaskCompletionModel;
+use Kanboard\Plugin\ScheduleExchange\Model\PlanningDependencyModel;
 
 /** Exports only the project the authenticated Kanboard user may view. */
 class ScheduleExportController extends BaseController
@@ -40,7 +41,8 @@ class ScheduleExportController extends BaseController
         $detailed = $this->request->getStringParam('subtasks') !== 'legacy';
         $plans = $detailed ? (new SubtaskPlanModel($this->db->getConnection()))->getByTaskIds(array_keys($knownIds)) : array();
         $completions = $detailed ? (new SubtaskCompletionModel($this->db->getConnection()))->getByTaskIds(array_keys($knownIds)) : array();
-        $xml = $exporter->generate($project, $tasks, $links, null, $subtasksByTask, $detailed, $plans, $completions);
+        $planningDependencies = (new PlanningDependencyModel($this->db->getConnection()))->getByProject($projectId);
+        $xml = $exporter->generate($project, $tasks, $links, null, $subtasksByTask, $detailed, $plans, $completions, $planningDependencies);
         $filename = 'kanboard-' . $projectId . ($detailed ? '-subtarefas' : '') . '-cronograma.xml';
         $this->response->withFileDownload($filename);
         $this->response->xml($xml);
