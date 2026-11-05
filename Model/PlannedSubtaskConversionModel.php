@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanboard\Plugin\ScheduleExport\Model;
+namespace Kanboard\Plugin\ScheduleExchange\Model;
 
 use DateTimeImmutable;
 use DateTimeZone;
