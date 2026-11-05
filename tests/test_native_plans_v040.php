@@ -3,8 +3,8 @@ require __DIR__.'/../Model/SubtaskPlanModel.php';
 require __DIR__.'/../Schema/Sqlite.php';
 require __DIR__.'/../Exporter/ProjectXmlExporter.php';
 
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 
 function nativeAssert($ok,$msg) { if (!$ok) throw new RuntimeException($msg); }
 
@@ -17,7 +17,7 @@ $db->exec('CREATE TABLE subtasks(id INTEGER PRIMARY KEY, task_id INTEGER NOT NUL
 $db->exec('INSERT INTO projects VALUES(1),(2)');
 $db->exec('INSERT INTO tasks VALUES(10,1),(20,2)');
 $db->exec('INSERT INTO subtasks VALUES(100,10),(200,20)');
-\Kanboard\Plugin\ScheduleExport\Schema\version_1($db);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_1($db);
 $model = new SubtaskPlanModel($db);
 nativeAssert($model->get(100) === null,'Unexpected existing plan');
 $model->save(1,10,100,'2026-11-02T09:00:00','2026-11-04T17:00:00',480,array(1,2,3,4,5),7);
