@@ -1,9 +1,9 @@
 <?php
 // Real Kanboard/PicoDb status, timer, model helpers and plugin initialization.
 $loader = require $argv[1].'/vendor/autoload.php';
-$loader->addPsr4('Kanboard\\Plugin\\ScheduleExport\\', dirname(__DIR__));
+$loader->addPsr4('Kanboard\\Plugin\\ScheduleExchange\\', dirname(__DIR__));
 require __DIR__.'/../Schema/Sqlite.php';
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskCompletionModel;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskCompletionModel;
 function ensure($ok,$msg) { if (!$ok) throw new RuntimeException($msg); }
 date_default_timezone_set('UTC');
 $c = new Pimple\Container();
@@ -15,17 +15,17 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 $pdo->exec('PRAGMA foreign_keys=ON');
 $pdo->exec('CREATE TABLE projects (id INTEGER PRIMARY KEY); CREATE TABLE tasks (id INTEGER PRIMARY KEY, project_id INT, time_spent REAL DEFAULT 0, time_estimated REAL DEFAULT 0, is_active INT DEFAULT 1, date_completed INT DEFAULT 0, date_modification INT DEFAULT 0); CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT); CREATE TABLE subtasks (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id INT NOT NULL, title TEXT, status INT DEFAULT 0, user_id INT DEFAULT 0, position INT DEFAULT 1, time_estimated REAL DEFAULT 0, time_spent REAL DEFAULT 0); CREATE TABLE subtask_time_tracking (id INTEGER PRIMARY KEY AUTOINCREMENT, subtask_id INT, user_id INT, start INT, end INT, time_spent REAL DEFAULT 0)');
 $pdo->exec("INSERT INTO projects VALUES(1); INSERT INTO tasks(id,project_id) VALUES(1,1); INSERT INTO users VALUES(1,'tester')");
-\Kanboard\Plugin\ScheduleExport\Schema\version_1($pdo);
-\Kanboard\Plugin\ScheduleExport\Schema\version_2($pdo);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_1($pdo);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_2($pdo);
 $c['userSession'] = new class { public function getId() {return 1;} public function isLogged() {return true;} };
 $c['configModel'] = new class { public function get($key,$default='') { return $key==='subtask_time_tracking' ? 1 : $default; } };
 $c['queueManager'] = new class {public $count=0; public function push($job) {$this->count++;} };
 $c['subtaskEventJob'] = new class {public function withParams(...$args) {return $this;} };
 $c['taskEventJob'] = new class {public function withParams(...$args) {return $this;} };
 $c['projectAccessMap'] = new class {public $rules=array(); public function add($controller,$action,$role) {$this->rules[$controller][$action]=$role;} };
-$plugin = new Kanboard\Plugin\ScheduleExport\Plugin($c);
+$plugin = new Kanboard\Plugin\ScheduleExchange\Plugin($c);
 $plugin->initialize();
-ensure($c['subtaskModel'] instanceof Kanboard\Plugin\ScheduleExport\Model\CompletionSubtaskModel,'Plugin wires completion model');
+ensure($c['subtaskModel'] instanceof Kanboard\Plugin\ScheduleExchange\Model\CompletionSubtaskModel,'Plugin wires completion model');
 $m = new SubtaskCompletionModel($pdo);
 $id = $c['subtaskModel']->create(array('task_id'=>1,'title'=>'Timer test','time_estimated'=>2));
 ensure($id && $m->get($id)===null,'Todo starts without actual date');
