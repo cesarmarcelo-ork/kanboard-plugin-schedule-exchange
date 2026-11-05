@@ -34,11 +34,11 @@ class Plugin extends Base
         $this->projectAccessMap->add('PlannedSubtaskCreationController', 'save', Role::PROJECT_MEMBER);
         $this->template->hook->attach(
             'template:subtask:table:header:before-timetracking',
-            'ScheduleExport:subtask/period-header'
+            'ScheduleExchange:subtask/period-header'
         );
         $this->template->hook->attachCallable(
             'template:subtask:table:rows',
-            'ScheduleExport:subtask/period-link',
+            'ScheduleExchange:subtask/period-link',
             function ($subtask) {
                 $projectId = $this->subtaskModel->getProjectId((int)$subtask['id']);
                 $plan = null;
@@ -52,8 +52,8 @@ class Plugin extends Base
                 );
             }
         );
-        $this->template->hook->attach('template:subtask:table:header:before-timetracking', 'ScheduleExport:subtask/completion-header');
-        $this->template->hook->attachCallable('template:subtask:table:rows', 'ScheduleExport:subtask/completion-link', function ($subtask) {
+        $this->template->hook->attach('template:subtask:table:header:before-timetracking', 'ScheduleExchange:subtask/completion-header');
+        $this->template->hook->attachCallable('template:subtask:table:rows', 'ScheduleExchange:subtask/completion-link', function ($subtask) {
             $projectId = $this->subtaskModel->getProjectId((int)$subtask['id']);
             $completion = null;
             if ($projectId && $this->helper->user->hasProjectAccess('SubtaskCompletionController', 'edit', $projectId)) {
@@ -64,11 +64,11 @@ class Plugin extends Base
         });
         $this->template->hook->attach(
             'template:subtask:form:create',
-            'ScheduleExport:subtask/create-entry'
+            'ScheduleExchange:subtask/create-entry'
         );
         $this->template->hook->attach(
             'template:project:dropdown',
-            'ScheduleExport:project/dropdown'
+            'ScheduleExchange:project/dropdown'
         );
     }
 
@@ -79,12 +79,12 @@ class Plugin extends Base
 
     public function getPluginName()
     {
-        return 'Kanboard Schedule Export';
+        return 'Kanboard Schedule Exchange';
     }
 
     public function getPluginDescription()
     {
-        return 'Export Kanboard project schedules as Microsoft Project XML (MSPDI) for compatible planning applications';
+        return 'Plan, exchange and synchronize Kanboard schedules with interoperable planning applications';
     }
 
     public function getPluginAuthor()
@@ -94,12 +94,12 @@ class Plugin extends Base
 
     public function getPluginVersion()
     {
-        return '0.6.1';
+        return '0.1.0-dev';
     }
 
     public function getPluginHomepage()
     {
-        return 'https://github.com/cesarmarcelo-ork/kanboard-plugin-schedule-export';
+        return 'https://github.com/cesarmarcelo-ork/kanboard-plugin-schedule-exchange';
     }
 
     public function getCompatibleVersion()
