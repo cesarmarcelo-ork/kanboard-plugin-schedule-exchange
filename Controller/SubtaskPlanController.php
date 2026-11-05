@@ -26,7 +26,7 @@ class SubtaskPlanController extends BaseController
     {
         list($task,$subtask) = $this->context();
         $plan = $this->planModel()->get((int)$subtask['id']);
-        $this->response->html($this->helper->layout->task('ScheduleExport:task/edit-plan', array(
+        $this->response->html($this->helper->layout->task('ScheduleExchange:task/edit-plan', array(
             'task'=>$task,
             'project'=>$this->projectModel->getById($task['project_id']),
             'subtask'=>$subtask,
