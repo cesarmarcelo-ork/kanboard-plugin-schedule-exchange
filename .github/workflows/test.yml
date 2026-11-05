@@ -1,0 +1,81 @@
+name: Validate Kanboard Schedule Export
+on:
+  push:
+  pull_request:
+jobs:
+  kanboard-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        kanboard: ['v1.2.50', 'v1.2.57']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: gd, mbstring, dom, simplexml
+          tools: composer
+      - uses: actions/checkout@v4
+        with:
+          repository: kanboard/kanboard
+          ref: ${{ matrix.kanboard }}
+          path: .kanboard-integration
+      - name: Install Kanboard runtime dependencies
+        working-directory: .kanboard-integration
+        run: composer install --no-dev --no-interaction --prefer-dist
+      - name: Render with real Kanboard helpers
+        run: |
+          php tests/test_kanboard_date_columns.php .kanboard-integration
+          php tests/test_kanboard_completion.php .kanboard-integration
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: PHP syntax
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Export fixture
+        run: php tests/smoke.php
+      - name: Validate MSPDI XML
+        run: python tests/verify_xml.py
+      - name: Regression matrix (source timestamps, missing dates, EAP, blockers)
+        run: |
+          OUT="$(mktemp -d)"
+          trap 'rm -rf "$OUT"' EXIT
+          php tests/test_matrix.php "$OUT"
+          python3 tests/verify_matrix.py "$OUT"
+      - name: Verify renamed plugin wiring
+        run: python3 tests/verify_plugin_rename.py
+      - name: Verify experimental native-subtask WBS and legacy regression
+        run: php tests/test_subtasks_v030.php
+      - name: Verify native subtask planning v0.4.0 (SQLite and MSPDI)
+        run: php tests/test_native_plans_v040.php
+      - name: Verify v0.4.1 conversion of native subtasks to tasks
+        run: php tests/test_subtask_conversion_v041.php
+      - name: Verify v0.4 native UI wiring, access control and CSRF
+        run: python3 tests/verify_v040_ui_wiring.py
+      - name: Verify v0.5.0 optional planned subtask creation
+        run: php tests/test_planned_creation_v050.php
+      - name: Verify EN/PT-BR user interface translations
+        run: python3 tests/verify_i18n_v050.py
+      - name: Verify actual completion lifecycle
+        run: php tests/test_completion.php
+      - name: Verify interoperable actual completion in MSPDI
+        run: php tests/test_completion_export.php
+      - name: Verify subtask date columns
+        run: php tests/test_date_columns.php
+      - name: Upload synthetic v0.3.0 MSPDI sample for ProjectLibre review
+        if: ${{ matrix.php == '8.4' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: schedule-export-v030-projectlibre-sample
+          path: tests/fixture_v030.xml
+          if-no-files-found: error
