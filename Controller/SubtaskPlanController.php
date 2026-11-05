@@ -1,8 +1,8 @@
 <?php
-namespace Kanboard\Plugin\ScheduleExport\Controller;
+namespace Kanboard\Plugin\ScheduleExchange\Controller;
 
 use Kanboard\Controller\BaseController;
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
 
 class SubtaskPlanController extends BaseController
 {
