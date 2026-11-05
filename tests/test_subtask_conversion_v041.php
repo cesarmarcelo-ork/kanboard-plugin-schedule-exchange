@@ -71,8 +71,8 @@ namespace {
     $pdo->exec('INSERT INTO tasks VALUES(10,1)');
     $pdo->exec("INSERT INTO subtasks VALUES(100,10,'Planned',3.5,1.25,7)");
     $pdo->exec("INSERT INTO subtasks VALUES(101,10,'No dates',0,0,7)");
-    \Kanboard\Plugin\ScheduleExport\Schema\version_1($pdo);
-    $plans = new \Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel($pdo);
+    \Kanboard\Plugin\ScheduleExchange\Schema\version_1($pdo);
+    $plans = new \Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel($pdo);
     $plans->save(1,10,100,'2026-11-03T09:00:00','2026-11-06T17:00:00',480,array(1,2,3,4,5),7);
 
     $subtasks = new FakeSubtask($pdo);
@@ -81,7 +81,7 @@ namespace {
     $link = new FakeLink();
     $links = new FakeService();
     $tags = new FakeService();
-    $conversion = new \Kanboard\Plugin\ScheduleExport\Model\PlannedSubtaskConversionModel(array(
+    $conversion = new \Kanboard\Plugin\ScheduleExchange\Model\PlannedSubtaskConversionModel(array(
         'db'=>new FakeDatabase($pdo), 'subtaskModel'=>$subtasks,
         'taskFinderModel'=>new FakeTaskFinder(), 'taskCreationModel'=>$created,
         'taskMetadataModel'=>$metadata, 'linkModel'=>$link,
