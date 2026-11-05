@@ -4,7 +4,7 @@
 <?php if (!empty($error)): ?><p class="alert alert-error"><?= $this->text->e($error) ?></p><?php endif ?>
 <?php $canEdit = $this->user->hasProjectAccess('SubtaskCompletionController', 'save', $task['project_id']); ?>
 <?php if ((int)$subtask['status'] === 2 && $canEdit): ?>
-<form method="post" action="<?= $this->url->href('SubtaskCompletionController', 'save', array('plugin'=>'ScheduleExport', 'project_id'=>$task['project_id'], 'task_id'=>$task['id'], 'subtask_id'=>$subtask['id'])) ?>">
+<form method="post" action="<?= $this->url->href('SubtaskCompletionController', 'save', array('plugin'=>'ScheduleExchange', 'project_id'=>$task['project_id'], 'task_id'=>$task['id'], 'subtask_id'=>$subtask['id'])) ?>">
     <?= $this->form->csrf() ?>
     <input type="hidden" name="revision" value="<?= (int)($completion['revision'] ?? 0) ?>">
     <label for="completed_at"><?= t('Actual completion date and time') ?></label>
