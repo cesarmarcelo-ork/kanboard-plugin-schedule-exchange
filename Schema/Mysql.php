@@ -23,13 +23,13 @@ function version_1(PDO $pdo)
 
 function version_2(PDO $pdo)
 {
-    $pdo->exec("CREATE TABLE schedule_export_subtask_completions (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_export_subtask_completions (
         subtask_id INT PRIMARY KEY,
         completed_at BIGINT NULL,
         revision INT NOT NULL DEFAULT 0,
         FOREIGN KEY(subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    $pdo->exec("CREATE TABLE schedule_export_completion_history (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_export_completion_history (
         id INT AUTO_INCREMENT PRIMARY KEY,
         subtask_id INT NOT NULL,
         previous_completed_at BIGINT NULL,
@@ -37,14 +37,14 @@ function version_2(PDO $pdo)
         action VARCHAR(20) NOT NULL,
         changed_at BIGINT NOT NULL,
         changed_by INT NOT NULL,
+        INDEX schedule_completion_history_subtask (subtask_id),
         FOREIGN KEY(subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    $pdo->exec('CREATE INDEX schedule_completion_history_subtask ON schedule_export_completion_history (subtask_id)');
 }
 
 function version_3(PDO $pdo)
 {
-    $pdo->exec("CREATE TABLE schedule_exchange_dependencies (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_exchange_dependencies (
         id INT AUTO_INCREMENT PRIMARY KEY,
         project_id INT NOT NULL,
         from_entity_type VARCHAR(10) NOT NULL,
