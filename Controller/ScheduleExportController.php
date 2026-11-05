@@ -1,11 +1,11 @@
 <?php
 
-namespace Kanboard\Plugin\ScheduleExport\Controller;
+namespace Kanboard\Plugin\ScheduleExchange\Controller;
 
 use Kanboard\Controller\BaseController;
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskCompletionModel;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskCompletionModel;
 
 /** Exports only the project the authenticated Kanboard user may view. */
 class ScheduleExportController extends BaseController
