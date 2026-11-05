@@ -13,7 +13,7 @@ $canEditPlan = $canViewPlan
     ?>
     <?php if ($canEditPlan): ?>
     <?= $this->url->link($this->text->e($label), 'SubtaskPlanController', 'edit', array(
-        'plugin'=>'ScheduleExport',
+        'plugin'=>'ScheduleExchange',
         'project_id'=>$schedule_export_project_id,
         'task_id'=>$subtask['task_id'],
         'subtask_id'=>$subtask['id'],
