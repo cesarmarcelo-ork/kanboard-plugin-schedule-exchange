@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../Exporter/ProjectXmlExporter.php';
 
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 
 function check($condition, $message) {
     if (!$condition) throw new RuntimeException($message);
