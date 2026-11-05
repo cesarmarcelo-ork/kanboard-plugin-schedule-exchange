@@ -1,4 +1,4 @@
-name: Validate Kanboard Schedule Export
+name: Validate Kanboard Schedule Exchange
 on:
   push:
   pull_request:
@@ -76,6 +76,6 @@ jobs:
         if: ${{ matrix.php == '8.4' }}
         uses: actions/upload-artifact@v4
         with:
-          name: schedule-export-v030-projectlibre-sample
+          name: schedule-exchange-v030-projectlibre-sample
           path: tests/fixture_v030.xml
           if-no-files-found: error
