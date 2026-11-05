@@ -29,7 +29,7 @@ class Plugin extends Base
             return new \Kanboard\Plugin\ScheduleExchange\Model\PlannedSubtaskConversionModel($container);
         };
 
-        $this->projectAccessMap->add('ScheduleExportController', 'download', Role::PROJECT_VIEWER);
+        $this->projectAccessMap->add('ScheduleExchangeController', 'download', Role::PROJECT_VIEWER);
         $this->projectAccessMap->add('PlanningDependencyController', 'create', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('PlanningDependencyController', 'remove', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('SubtaskPlanController', 'edit', Role::PROJECT_VIEWER);
