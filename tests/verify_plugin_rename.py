@@ -8,8 +8,8 @@ plugin=(base/'Plugin.php').read_text(encoding='utf-8')
 assert r'namespace Kanboard\Plugin\ScheduleExchange;' in plugin
 assert "'ScheduleExchange:project/dropdown'" in plugin
 assert "'ScheduleExchangeController', 'download'" in plugin
-assert "return 'Kanboard Schedule Export';" in plugin
-assert "return '0.6.1';" in plugin
+assert "return 'Kanboard Schedule Exchange';" in plugin
+assert "return '0.1.0-dev';" in plugin
 assert "return '>=1.2.50';" in plugin
 controller=(base/'Controller/ScheduleExchangeController.php').read_text(encoding='utf-8')
 assert 'class ScheduleExchangeController' in controller
@@ -27,4 +27,4 @@ for p in base.rglob('*.php'):
     t=p.read_text(encoding='utf-8')
     assert r'Kanboard\Plugin\ProjectLibreExport' not in t, str(p)
     assert 'ProjectLibreExportController' not in t, str(p)
-print('PASS: renamed plugin folder, PHP namespace, ACL, controller, template hook, download filename, version')
+print('PASS: Schedule Exchange identity, namespace, ACL, controller, template hook, download filename, version')
