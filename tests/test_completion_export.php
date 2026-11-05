@@ -4,9 +4,9 @@ require __DIR__.'/../Model/SubtaskPlanModel.php';
 require __DIR__.'/../Schema/Sqlite.php';
 require __DIR__.'/../Exporter/ProjectXmlExporter.php';
 
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskCompletionModel;
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskCompletionModel;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 
 function exportAssert($ok, $message) { if (!$ok) throw new RuntimeException($message); }
 function xmlTask($xml, $source) {
@@ -27,8 +27,8 @@ $db->exec('CREATE TABLE users(id INTEGER PRIMARY KEY, username TEXT)');
 $db->exec('CREATE TABLE subtasks(id INTEGER PRIMARY KEY, task_id INTEGER NOT NULL, status INTEGER NOT NULL)');
 $db->exec("INSERT INTO projects VALUES(1); INSERT INTO tasks VALUES(10,1); INSERT INTO users VALUES(7,'cesar')");
 $db->exec('INSERT INTO subtasks VALUES(100,10,2),(101,10,2),(102,10,0),(103,10,1)');
-\Kanboard\Plugin\ScheduleExport\Schema\version_1($db);
-\Kanboard\Plugin\ScheduleExport\Schema\version_2($db);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_1($db);
+\Kanboard\Plugin\ScheduleExchange\Schema\version_2($db);
 
 $plans = new SubtaskPlanModel($db);
 foreach (array(100,101,102,103) as $id) {
