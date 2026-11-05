@@ -1,0 +1,50 @@
+# Changelog
+
+## 0.6.1 — 2026-11-03
+
+- Replaces the single planning column with separate estimated start and estimated finish columns.
+- Records and displays the actual completion date of native Kanboard subtasks, including automatic synchronization on completion, reopening history and controlled manual correction.
+- Exports `ActualFinish`, completion percentages and zero remaining duration for completed subtasks without overwriting the planned finish.
+- Uses MSPDI elapsed-day duration metadata so ProjectLibre and Open Planner Studio preserve the same calendar interval without converting it into eight-hour workdays.
+- Validated in isolated Kanboard 1.2.50 and in the homelab, with automated coverage on Kanboard 1.2.50/1.2.57 and PHP 8.1–8.4.
+
+## 0.5.0 — development (not published)
+
+- English source labels with Brazilian Portuguese translations, following the Kanboard user's language.
+- Optional per-subtask planned dates available during individual subtask creation, via a dedicated link in the standard creation form.
+- Preserved native bulk creation and existing Dates edit workflow.
+- Shared plan input validation and coordinated native-subtask/plan persistence with rollback.
+- Added automated tests for translations, invalid planning, ownership, and rollback. Kanboard 1.2.50 live UI acceptance testing remains a release gate.
+
+
+## 0.4.2 — release candidate (unpublished)
+
+- Raised declared minimum Kanboard compatibility from `>=1.2.30` to `>=1.2.50`.
+- Project maintainer confirmed functional tests covering subtasks, native subtask-to-task conversion, and MSPDI XML export on Kanboard 1.2.50. Independent test artifacts have not been inspected; existing v1.2.57 laboratory validation remains documented.
+- Plugin metadata version bumped to `0.4.2`; the exporter implementation and data schema are unchanged.
+- Official catalog metadata must be updated only after the v0.4.2 release ZIP is published.
+
+## 0.2.0 — Stable (01/11/2026)
+
+- Promoted the homologated `0.2.0-rc1` to stable `0.2.0`; only plugin version/homepage metadata, tests, and documentation changed. **No exporter or controller behavior changed.**
+- Independent Kanboard `kanboard/kanboard:v1.2.57` laboratory validation completed using the packaged GitHub Release ZIP: scenarios A–F, real HTTP controller export, MSPDI XML, original dates, milestones, WBS/EAP, native subtask estimates and predecessor links all passed.
+- Production Kanboard remained `running/healthy` and unchanged throughout the independent lab tests. Temporary lab containers, volumes and network were removed after preserving the audit evidence.
+- GitHub Actions validation for PHP 8.1, 8.2, 8.3 and 8.4 passed on the release candidate. Stable version metadata is revalidated by CI for this release.
+- Scope caveat: ProjectLibre 1.9.8 and OPS v2026.43.0 interoperability are validated only to the extent documented; exact OPS minute semantics, cross-app workload equivalence and CPM interpretation are not universally certified.
+
+## 0.2.0-rc1 — Kanboard Schedule Export (31/10/2026)
+
+- Plugin renamed from `ProjectLibreExport` to **`ScheduleExport`** including directory, namespaces, controller, Kanboard role map, view hook and user-facing label.
+- The export endpoint now downloads `kanboard-ID-cronograma.xml`. Format remains **MSPDI**; no new importer or external dependency.
+- Exporter logic retained from the Linux-homologated `0.1.4-rc2`; no change to Kanboard input dates/times, parent-child EAP, native subtasks, duration compensation or MSPDI calendar.
+- Added migration guidance with backup/rollback, OPS test plan, and identity regression tests.
+- Open Planner Studio v2026.43.0: imported XML, EAP, descriptions, native-subtask estimates, and save/reopen persistence verified on 01/11/2026. CPM and minute-level semantics remain additional checks.
+
+## 0.1.4-rc2 — ProjectLibre 1.9.8 minute compatibility (31/10/2026)
+
+- Subtracted 1 minute from MSPDI `Duration` for each complete 24h period. `Start`, `Finish` and `Deadline` unchanged.
+- Passed offline source JSON checks and user ProjectLibre Linux import test.
+
+## 0.1.4-rc1 — Source fidelity (31/10/2026)
+
+- Exact source dates, EAP, native checklist in Notes, no synthetic task schedules for missing dates, warnings for contradictions and valid blocker-only dependencies.
