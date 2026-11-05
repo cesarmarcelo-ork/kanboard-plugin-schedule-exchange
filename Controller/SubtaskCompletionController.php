@@ -20,7 +20,7 @@ class SubtaskCompletionController extends BaseController
     {
         $model = new SubtaskCompletionModel($this->db->getConnection());
         $completion = $model->get($subtask['id']);
-        $this->response->html($this->helper->layout->task('ScheduleExport:task/edit-completion', array(
+        $this->response->html($this->helper->layout->task('ScheduleExchange:task/edit-completion', array(
             'task' => $task,
             'project' => $this->projectModel->getById($task['project_id']),
             'subtask' => $subtask,
