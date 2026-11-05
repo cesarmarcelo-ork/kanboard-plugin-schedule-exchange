@@ -26,7 +26,7 @@ class ProjectXmlExporter
         return (new DateTimeImmutable('@' . (int)$timestamp))->setTimezone($this->timezone)->format($pattern);
     }
 
-    public function generate(array $project, array $tasks, array $linksByTask, $anchor = null, array $subtasksByTask = array(), $detailedSubtasks = false, array $persistedPlans = array(), array $subtaskCompletions = array())
+    public function generate(array $project, array $tasks, array $linksByTask, $anchor = null, array $subtasksByTask = array(), $detailedSubtasks = false, array $persistedPlans = array(), array $subtaskCompletions = array(), array $planningDependencies = array())
     {
         $byId = array();
         foreach ($tasks as $task) {
@@ -136,6 +136,44 @@ class ProjectXmlExporter
                 // All other labels (including "duplicated by") are NOT dependencies.
             }
         }
+        // Schedule Exchange planning dependencies use native Kanboard IDs as identity.
+        // For this first end-to-end milestone, task-to-task relations are emitted
+        // directly as MSPDI predecessor links. Relations involving subtasks remain
+        // persisted and will be enabled after the task-to-task XML round-trip is validated.
+        $exchangeDependencyMeta = array();
+        $mspdiTypes = array('FF'=>0, 'FS'=>1, 'SF'=>2, 'SS'=>3);
+        foreach ($planningDependencies as $dependency) {
+            if ((int)($dependency['project_id'] ?? 0) !== (int)$project['id']) {
+                throw new \InvalidArgumentException('Planning dependency belongs to another project');
+            }
+            if (($dependency['from_entity_type'] ?? '') !== 'task' || ($dependency['to_entity_type'] ?? '') !== 'task') {
+                continue;
+            }
+
+            $pred = (int)($dependency['from_task_id'] ?? 0);
+            $succ = (int)($dependency['to_task_id'] ?? 0);
+            if ($pred < 1 || $succ < 1 || $pred === $succ || !isset($byId[$pred]) || !isset($byId[$succ])) {
+                throw new \InvalidArgumentException('Invalid task planning dependency');
+            }
+
+            $relationType = strtoupper((string)($dependency['relation_type'] ?? 'FS'));
+            if (!isset($mspdiTypes[$relationType])) {
+                throw new \InvalidArgumentException('Unsupported planning dependency type');
+            }
+            $lagDays = (int)($dependency['lag_days'] ?? 0);
+
+            $predecessors[$succ][$pred] = true;
+            $exchangeDependencyMeta[$succ][$pred] = array(
+                'Type' => $mspdiTypes[$relationType],
+                // MSPDI LinkLag uses tenths of a minute. With the source 7x24
+                // calendar, one elapsed day is 1440 minutes = 14400 units.
+                'LinkLag' => $lagDays * 14400,
+                'LagFormat' => 7,
+                'relation_type' => $relationType,
+                'lag_days' => $lagDays,
+            );
+        }
+
         $parents = array();
         foreach ($parentCandidates as $child => $choices) {
             if (count($choices) !== 1) throw new \InvalidArgumentException('Ambiguous multiple parents for Kanboard card ' . $child);
@@ -183,6 +221,7 @@ class ProjectXmlExporter
             foreach (array_keys($nativeNotes) as $taskId) $summary[$taskId] = true;
         }
         $edges = array();
+        $edgeMeta = array();
         $notesProject = array(
             'Fonte: Kanboard. Exportacao somente leitura; nenhuma atividade e alterada.',
             'Cartoes: ' . count($byId) . '; vinculos EAP: ' . count($parents) . '; subtarefas nativas: ' . count($subIds) . ($detailedSubtasks ? ' (EAP detalhada, sem datas proprias).' : ' (apenas nas observacoes).'),
@@ -201,6 +240,9 @@ class ProjectXmlExporter
                     continue;
                 }
                 $edges[$succ][$pred] = true;
+                if (isset($exchangeDependencyMeta[$succ][$pred])) {
+                    $edgeMeta[$succ][$pred] = $exchangeDependencyMeta[$succ][$pred];
+                }
             }
         }
         if ($this->dependencyCycle($edges)) throw new \InvalidArgumentException('Cycle in Kanboard dependencies');
@@ -325,8 +367,14 @@ class ProjectXmlExporter
             $fields['Notes']=$notes;
             $xml .= "    <Task>\n" . $this->fields($fields,3);
             foreach (array_keys($edges[$id] ?? array()) as $pred) {
+                $meta = $edgeMeta[$id][$pred] ?? array('Type'=>1,'LinkLag'=>0,'LagFormat'=>7);
                 $xml .= "      <PredecessorLink>\n";
-                $xml .= $this->fields(array('PredecessorUID'=>$pred,'Type'=>1,'LinkLag'=>0,'LagFormat'=>7),4);
+                $xml .= $this->fields(array(
+                    'PredecessorUID'=>$pred,
+                    'Type'=>$meta['Type'],
+                    'LinkLag'=>$meta['LinkLag'],
+                    'LagFormat'=>$meta['LagFormat']
+                ),4);
                 $xml .= "      </PredecessorLink>\n";
             }
             $xml .= "    </Task>\n";
