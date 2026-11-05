@@ -1,7 +1,7 @@
 <?php
 namespace Kanboard\Plugin\ScheduleExchange\Schema;
 use PDO;
-const VERSION = 2;
+const VERSION = 3;
 function version_1(PDO $pdo)
 {
     $pdo->exec("CREATE TABLE IF NOT EXISTS schedule_export_subtask_plans (
@@ -40,4 +40,32 @@ function version_2(PDO $pdo)
         FOREIGN KEY(subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     $pdo->exec('CREATE INDEX schedule_completion_history_subtask ON schedule_export_completion_history (subtask_id)');
+}
+
+function version_3(PDO $pdo)
+{
+    $pdo->exec("CREATE TABLE schedule_exchange_dependencies (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        project_id INT NOT NULL,
+        from_entity_type VARCHAR(10) NOT NULL,
+        from_task_id INT NOT NULL,
+        from_subtask_id INT NULL,
+        to_entity_type VARCHAR(10) NOT NULL,
+        to_task_id INT NOT NULL,
+        to_subtask_id INT NULL,
+        relation_type VARCHAR(2) NOT NULL DEFAULT 'FS',
+        lag_days INT NOT NULL DEFAULT 0,
+        created_at BIGINT NOT NULL,
+        created_by INT NOT NULL,
+        updated_at BIGINT NOT NULL,
+        updated_by INT NOT NULL,
+        INDEX schedule_exchange_dependencies_project (project_id),
+        INDEX schedule_exchange_dependencies_from (from_task_id, from_subtask_id),
+        INDEX schedule_exchange_dependencies_to (to_task_id, to_subtask_id),
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+        FOREIGN KEY(from_task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY(from_subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE,
+        FOREIGN KEY(to_task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY(to_subtask_id) REFERENCES subtasks(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 }
