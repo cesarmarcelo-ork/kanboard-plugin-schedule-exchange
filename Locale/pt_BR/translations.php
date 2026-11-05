@@ -65,4 +65,13 @@ return array(
     'Enter a valid completion date that is not in the future.' => 'Informe uma data de conclusão válida que não esteja no futuro.',
     'Subtask does not belong to this task.' => 'A subtarefa não pertence a esta tarefa.',
     'This subtask changed. Reload the page before saving.' => 'Esta subtarefa foi alterada. Recarregue a página antes de salvar.',
+    'Subtask planning — Schedule Exchange' => 'Planejamento de subtarefas — Schedule Exchange',
+    'Planning dependencies' => 'Dependências de planejamento',
+    'No predecessor registered.' => 'Nenhuma predecessora cadastrada.',
+    'Add predecessor' => 'Adicionar predecessora',
+    'Select a task' => 'Selecione um cartão',
+    'Lag: %d day(s)' => 'Defasagem: %d dia(s)',
+    'FS · Lag 0' => 'FS · Defasagem 0',
+    'Add' => 'Adicionar',
+    'Remove' => 'Remover',
 );
