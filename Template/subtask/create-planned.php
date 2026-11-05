@@ -18,7 +18,7 @@ $selectedDays = isset($values['workdays']) && is_array($values['workdays'])
 <div class="page-header"><h2><?= t('Add a sub-task with planning') ?></h2></div>
 <div class="schedule-create">
     <p><?= t('Planning is optional. Leave unchecked to create an unscheduled sub-task.') ?></p>
-    <form method="post" action="<?= $this->url->href('PlannedSubtaskCreationController','save',array('plugin'=>'ScheduleExport','task_id'=>$task['id'],'project_id'=>$task['project_id'])) ?>" autocomplete="off">
+    <form method="post" action="<?= $this->url->href('PlannedSubtaskCreationController','save',array('plugin'=>'ScheduleExchange','task_id'=>$task['id'],'project_id'=>$task['project_id'])) ?>" autocomplete="off">
         <?= $this->form->csrf() ?>
         <?= $this->subtask->renderTitleField($values, $errors, array('autofocus')) ?>
         <?= $this->subtask->renderAssigneeField($users_list, $values, $errors) ?>
