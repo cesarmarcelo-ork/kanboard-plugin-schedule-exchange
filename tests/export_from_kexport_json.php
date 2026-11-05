@@ -5,7 +5,7 @@
  * Usage: php tests/export_from_kexport_json.php file.json output.xml
  */
 require __DIR__ . '/../Exporter/ProjectXmlExporter.php';
-use Kanboard\Plugin\ScheduleExport\Exporter\ProjectXmlExporter;
+use Kanboard\Plugin\ScheduleExchange\Exporter\ProjectXmlExporter;
 if ($argc !== 3) { fwrite(STDERR, "Usage: php export_from_kexport_json.php snapshot.json output.xml\n"); exit(2); }
 $raw=file_get_contents($argv[1]);
 if ($raw === false) throw new RuntimeException('Snapshot is unreadable');
