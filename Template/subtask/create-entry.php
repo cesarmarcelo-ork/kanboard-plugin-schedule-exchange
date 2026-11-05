@@ -5,7 +5,7 @@ $taskId = (int)($values['task_id'] ?? 0);
 ?>
 <?php if ($taskId > 0): ?>
 <div class="alert alert-info">
-    <a href="<?= $this->url->href('PlannedSubtaskCreationController', 'create', array('plugin' => 'ScheduleExport', 'task_id' => $taskId)) ?>">
+    <a href="<?= $this->url->href('PlannedSubtaskCreationController', 'create', array('plugin' => 'ScheduleExchange', 'task_id' => $taskId)) ?>">
         <?= t('Create one sub-task with planning') ?>
     </a>
     <p><?= t('Create a single sub-task and optionally set planned dates, or keep using bulk creation without dates.') ?></p>
