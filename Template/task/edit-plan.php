@@ -19,7 +19,7 @@
 <section class="page-header"><h2><?= t('Subtask planning') ?></h2></section>
 <div class="schedule-plan">
     <p class="schedule-plan__muted"><strong><?= $this->text->e($subtask['title']) ?></strong> · <?= t('Card #%d', (int)$task['id']) ?> · <?= t('Subtask #%d', (int)$subtask['id']) ?></p>
-    <form method="post" action="<?= $this->url->href('SubtaskPlanController','save',array('plugin'=>'ScheduleExport','project_id'=>$task['project_id'],'task_id'=>$task['id'],'subtask_id'=>$subtask['id'])) ?>">
+    <form method="post" action="<?= $this->url->href('SubtaskPlanController','save',array('plugin'=>'ScheduleExchange','project_id'=>$task['project_id'],'task_id'=>$task['id'],'subtask_id'=>$subtask['id'])) ?>">
         <?= $this->form->csrf() ?>
         <div class="schedule-plan__panel">
             <h3 class="schedule-plan__heading"><?= t('Planned period') ?></h3>
@@ -56,7 +56,7 @@
         </div>
     </form>
     <?php if (!empty($plan)): ?>
-        <form class="schedule-plan__remove" method="post" action="<?= $this->url->href('SubtaskPlanController','remove',array('plugin'=>'ScheduleExport','project_id'=>$task['project_id'],'task_id'=>$task['id'],'subtask_id'=>$subtask['id'])) ?>">
+        <form class="schedule-plan__remove" method="post" action="<?= $this->url->href('SubtaskPlanController','remove',array('plugin'=>'ScheduleExchange','project_id'=>$task['project_id'],'task_id'=>$task['id'],'subtask_id'=>$subtask['id'])) ?>">
             <?= $this->form->csrf() ?>
             <button type="submit" class="btn btn-red" onclick="return confirm('<?= $this->text->e(t('Remove the planned period for this sub-task?')) ?>')"><?= t('Remove planning') ?></button>
         </form>
