@@ -1,11 +1,11 @@
 <?php
 
-namespace Kanboard\Plugin\ScheduleExport\Controller;
+namespace Kanboard\Plugin\ScheduleExchange\Controller;
 
 use InvalidArgumentException;
 use Kanboard\Controller\BaseController;
-use Kanboard\Plugin\ScheduleExport\Model\PlannedSubtaskCreationService;
-use Kanboard\Plugin\ScheduleExport\Model\SubtaskPlanModel;
+use Kanboard\Plugin\ScheduleExchange\Model\PlannedSubtaskCreationService;
+use Kanboard\Plugin\ScheduleExchange\Model\SubtaskPlanModel;
 
 class PlannedSubtaskCreationController extends BaseController
 {
