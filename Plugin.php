@@ -30,6 +30,8 @@ class Plugin extends Base
         };
 
         $this->projectAccessMap->add('ScheduleExportController', 'download', Role::PROJECT_VIEWER);
+        $this->projectAccessMap->add('PlanningDependencyController', 'create', Role::PROJECT_MEMBER);
+        $this->projectAccessMap->add('PlanningDependencyController', 'remove', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('SubtaskPlanController', 'edit', Role::PROJECT_VIEWER);
         $this->projectAccessMap->add('SubtaskPlanController', 'save', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('SubtaskPlanController', 'remove', Role::PROJECT_MEMBER);
@@ -80,6 +82,27 @@ class Plugin extends Base
             function ($task, $project) {
                 return array(
                     'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
+                );
+            }
+        );
+
+        $this->template->hook->attachCallable(
+            'template:task:show:top',
+            'ScheduleExchange:task/dependencies',
+            function ($task, $project) {
+                $projectId = (int) $project['id'];
+                $open = $this->taskFinderModel->getAll($projectId, 1);
+                $closed = $this->taskFinderModel->getAll($projectId, 0);
+                $tasks = array_merge($open, $closed);
+                $titles = array();
+                foreach ($tasks as $candidate) {
+                    $titles[(int)$candidate['id']] = (string)$candidate['title'];
+                }
+
+                return array(
+                    'planning_dependencies' => $this->scheduleDependencyModel->getByProject($projectId),
+                    'planning_tasks' => $tasks,
+                    'planning_task_titles' => $titles,
                 );
             }
         );
