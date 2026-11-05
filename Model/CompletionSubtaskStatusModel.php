@@ -1,5 +1,5 @@
 <?php
-namespace Kanboard\Plugin\ScheduleExport\Model;
+namespace Kanboard\Plugin\ScheduleExchange\Model;
 
 class CompletionSubtaskStatusModel extends \Kanboard\Model\SubtaskStatusModel
 {
