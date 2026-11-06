@@ -75,6 +75,11 @@ class Plugin extends Base
             'template:project:dropdown',
             'ScheduleExchange:project/dropdown'
         );
+        // Task sidebar navigation, without overriding native task actions.
+        $this->template->hook->attach(
+            'template:task:sidebar:actions',
+            'ScheduleExchange:task/sidebar-actions'
+        );
 
         $this->template->hook->attachCallable(
             'template:task:show:top',
