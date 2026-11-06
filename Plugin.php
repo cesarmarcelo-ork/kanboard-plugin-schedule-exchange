@@ -37,6 +37,8 @@ class Plugin extends Base
         $this->projectAccessMap->add('SubtaskPlanController', 'remove', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('PlannedSubtaskCreationController', 'create', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('PlannedSubtaskCreationController', 'save', Role::PROJECT_MEMBER);
+        $this->projectAccessMap->add('TaskPlanController', 'edit', Role::PROJECT_MEMBER);
+        $this->projectAccessMap->add('TaskPlanController', 'save', Role::PROJECT_MEMBER);
         $this->template->hook->attach(
             'template:subtask:table:header:before-timetracking',
             'ScheduleExchange:subtask/period-header'
@@ -77,7 +79,7 @@ class Plugin extends Base
         );
         // Task sidebar navigation, without overriding native task actions.
         $this->template->hook->attach(
-            'template:task:sidebar:actions',
+            'template:task:sidebar:after-add-comment',
             'ScheduleExchange:task/sidebar-actions'
         );
 
