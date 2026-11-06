@@ -64,6 +64,8 @@ jobs:
         run: python3 tests/verify_v040_ui_wiring.py
       - name: Verify v0.5.0 optional planned subtask creation
         run: php tests/test_planned_creation_v050.php
+      - name: Verify card and subtask dependency endpoints
+        run: php tests/test_dependency_endpoints.php
       - name: Verify EN/PT-BR user interface translations
         run: python3 tests/verify_i18n_v050.py
       - name: Verify actual completion lifecycle
