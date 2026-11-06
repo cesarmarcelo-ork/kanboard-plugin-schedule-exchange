@@ -70,6 +70,39 @@ class PlanningDependencyModel
         if ($lagDays < -3650 || $lagDays > 3650) {
             throw new InvalidArgumentException('Dependency lag out of range');
         }
+        // Reject circular links at registration time, before writing to the database.
+        // The XML exporter additionally checks the combined graph with legacy blockers.
+        $nodeKey = function ($endpoint) {
+            return $endpoint['type'] === self::ENTITY_TASK
+                ? 'task:'.$endpoint['task_id']
+                : 'subtask:'.$endpoint['subtask_id'];
+        };
+        $graph = array();
+        foreach ($this->getByProject($projectId) as $existing) {
+            $fromKey = $existing['from_entity_type'] === self::ENTITY_TASK
+                ? 'task:'.(int)$existing['from_task_id']
+                : 'subtask:'.(int)$existing['from_subtask_id'];
+            $toKey = $existing['to_entity_type'] === self::ENTITY_TASK
+                ? 'task:'.(int)$existing['to_task_id']
+                : 'subtask:'.(int)$existing['to_subtask_id'];
+            $graph[$toKey][$fromKey] = true;
+        }
+        $graph[$nodeKey($to)][$nodeKey($from)] = true;
+        $state = array();
+        $cycle = function ($key) use (&$cycle, &$state, $graph) {
+            if (($state[$key] ?? 0) === 1) return true;
+            if (($state[$key] ?? 0) === 2) return false;
+            $state[$key] = 1;
+            foreach (array_keys($graph[$key] ?? array()) as $previous) {
+                if ($cycle($previous)) return true;
+            }
+            $state[$key] = 2;
+            return false;
+        };
+        foreach (array_keys($graph) as $key) {
+            if ($cycle($key)) throw new InvalidArgumentException('Circular planning dependency');
+        }
+
         $now = time();
 
         // One dependency per endpoint pair. Relation type and lag are properties
