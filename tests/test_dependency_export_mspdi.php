@@ -37,7 +37,7 @@ foreach ($matches[1] as $row) {
     if (!preg_match('~<UID>([0-9]+)</UID>~',$row,$uid)) continue;
     $rows[(int)$uid[1]]=$row;
 }
-requireOk(count($rows)===7,'Two cards, two subtasks, two period rows, one project row expected');
+requireOk(count($rows)===9,'Project, two cards, two subtasks, two card-period rows and two deadlines expected');
 requireOk(count($rows)===count(array_unique(array_keys($rows))),'UIDs must be unique');
 $findUid=function($marker) use($rows){
     foreach ($rows as $id=>$row) if (strpos($row,$marker)!==false) return $id;
