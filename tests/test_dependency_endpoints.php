@@ -65,6 +65,12 @@ try {
 } catch (InvalidArgumentException $e) {
     // Expected.
 }
+try {
+    $model->create(7, 'subtask', 101, 1011, 'subtask', 100, 1001, 'FS', 0, 1);
+    throw new RuntimeException('Circular dependency accepted');
+} catch (InvalidArgumentException $e) {
+    verify($e->getMessage() === 'Circular planning dependency', 'Wrong cycle rejection reason');
+}
 verify($model->delete(7, (int)$all[0]['id']), 'Delete must succeed');
 verify(count($model->getByProject(7)) === 3, 'Deletion must be persisted');
 echo "PASS: four task/subtask dependency variants, ownership, duplicates, deletion\n";
