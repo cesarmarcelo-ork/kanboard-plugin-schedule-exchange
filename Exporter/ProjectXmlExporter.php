@@ -234,6 +234,44 @@ class ProjectXmlExporter
         if ($detailedSubtasks) {
             foreach (array_keys($nativeNotes) as $taskId) $summary[$taskId] = true;
         }
+        // Parent deadline milestones are appended as the last child, so a
+        // Summary deadlines are shown with an auxiliary milestone in MSPDI readers.
+        $atEnd = array();
+        foreach ($ordered as $pos => $id) {
+            if (!isset($summary[$id]) || $this->timestampDate($byId[$id]['date_due'] ?? 0) === null) continue;
+            $last = $pos;
+            for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
+            $atEnd[$last][] = $id;
+        }
+        // Native subtasks are emitted after the card's last descendant so WBS
+        // remains valid even when a card also has child cards.
+        $subAtEnd = array();
+        if ($detailedSubtasks) {
+            foreach ($ordered as $pos => $id) {
+                if (empty($nativeNotes[$id])) continue;
+                $last = $pos;
+                for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
+                $subAtEnd[$last][] = $id;
+            }
+        }
+        // A card remains a real Kanboard card (UID = card ID). For summary
+        // cards, an additional read-only row preserves the card's OWN period
+        // even if an MSPDI importer recalculates the summary bar from children.
+        // Only a real Kanboard start can produce this row; without a finish it
+        // is a START milestone, never a fabricated duration.
+        $ownAtEnd = array();
+        $ownPeriodRow = array();
+        if ($detailedSubtasks) {
+            foreach ($ordered as $pos => $id) {
+                if (!isset($summary[$id]) || $this->timestampDate($byId[$id]['date_started'] ?? 0) === null) continue;
+                $last = $pos;
+                for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
+                $ownAtEnd[$last][] = $id;
+                $ownPeriodRow[$id] = true;
+            }
+        }
+        foreach ($atEnd as &$closing) usort($closing,function($a,$b) use($levels){return $levels[$b] <=> $levels[$a];});
+        unset($closing);
         // Preallocate one unique XML UID per real subtask and card-period row.
         $nextUid = $ids ? max($ids)+1 : 1;
         $subtaskUid = array();
@@ -304,44 +342,6 @@ class ProjectXmlExporter
             'Start'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),'Finish'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),
             'Duration'=>'PT0H0M0S','Notes'=>implode("\n",$notesProject)),3) . "    </Task>\n";
 
-        // Parent deadline milestones are appended as the last child, so a
-        // Summary deadlines are shown with an auxiliary milestone in MSPDI readers.
-        $atEnd = array();
-        foreach ($ordered as $pos => $id) {
-            if (!isset($summary[$id]) || $this->timestampDate($byId[$id]['date_due'] ?? 0) === null) continue;
-            $last = $pos;
-            for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
-            $atEnd[$last][] = $id;
-        }
-        // Native subtasks are emitted after the card's last descendant so WBS
-        // remains valid even when a card also has child cards.
-        $subAtEnd = array();
-        if ($detailedSubtasks) {
-            foreach ($ordered as $pos => $id) {
-                if (empty($nativeNotes[$id])) continue;
-                $last = $pos;
-                for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
-                $subAtEnd[$last][] = $id;
-            }
-        }
-        // A card remains a real Kanboard card (UID = card ID). For summary
-        // cards, an additional read-only row preserves the card's OWN period
-        // even if an MSPDI importer recalculates the summary bar from children.
-        // Only a real Kanboard start can produce this row; without a finish it
-        // is a START milestone, never a fabricated duration.
-        $ownAtEnd = array();
-        $ownPeriodRow = array();
-        if ($detailedSubtasks) {
-            foreach ($ordered as $pos => $id) {
-                if (!isset($summary[$id]) || $this->timestampDate($byId[$id]['date_started'] ?? 0) === null) continue;
-                $last = $pos;
-                for ($j=$pos+1; $j<count($ordered) && $levels[$ordered[$j]] > $levels[$id]; $j++) $last=$j;
-                $ownAtEnd[$last][] = $id;
-                $ownPeriodRow[$id] = true;
-            }
-        }
-        foreach ($atEnd as &$closing) usort($closing,function($a,$b) use($levels){return $levels[$b] <=> $levels[$a];});
-        unset($closing);
         $nextId=1;
         foreach ($ordered as $pos => $id) {
             $task = $byId[$id];
