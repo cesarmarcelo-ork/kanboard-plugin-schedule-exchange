@@ -67,6 +67,8 @@ class PlanningDependencyController extends BaseController
                 $this->flash->failure(t('An activity cannot be its own predecessor.'));
             } elseif ($message === 'Invalid dependency relation type') {
                 $this->flash->failure(t('Select a valid dependency relationship.'));
+            } elseif ($message === 'Circular planning dependency') {
+                $this->flash->failure(t('This link would create a circular planning dependency.'));
             } elseif ($message === 'Dependency lag out of range') {
                 $this->flash->failure(t('Enter a lag between -3650 and 3650 days.'));
             } else {
