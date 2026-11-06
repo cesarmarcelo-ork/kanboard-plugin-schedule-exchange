@@ -10,7 +10,8 @@
 @media(max-width:650px){.schedule-create__grid{grid-template-columns:1fr}}
 </style>
 <?php
-$planned = isset($values['schedule_export_plan']) && (string)$values['schedule_export_plan'] === '1';
+$planned = (isset($values['schedule_export_plan']) && (string)$values['schedule_export_plan'] === '1')
+    || !empty($values['planned_start']) || !empty($values['planned_end']);
 $selectedDays = isset($values['workdays']) && is_array($values['workdays'])
     ? array_map('intval', $values['workdays'])
     : ($planned ? array() : array(1,2,3,4,5));
@@ -24,7 +25,7 @@ $selectedDays = isset($values['workdays']) && is_array($values['workdays'])
         <?= $this->subtask->renderAssigneeField($users_list, $values, $errors) ?>
         <?= $this->subtask->renderTimeEstimatedField($values, $errors) ?>
         <div class="schedule-create__panel">
-            <label><input type="checkbox" name="schedule_export_plan" value="1" <?= $planned ? 'checked' : '' ?>> <strong><?= t('Plan this sub-task now') ?></strong></label>
+            <label><input type="checkbox" id="schedule_export_plan" name="schedule_export_plan" value="1" <?= $planned ? 'checked' : '' ?>> <strong><?= t('Plan this sub-task now') ?></strong></label>
             <?php if (!empty($errors['schedule_export_plan'])): ?>
                 <p class="alert alert-error"><?= $this->text->e(implode(' ', (array)$errors['schedule_export_plan'])) ?></p>
             <?php endif ?>
@@ -57,3 +58,17 @@ $selectedDays = isset($values['workdays']) && is_array($values['workdays'])
         </div>
     </form>
 </div>
+<script>
+(function () {
+    var toggle = document.getElementById('schedule_export_plan');
+    var start = document.getElementById('planned_start');
+    var end = document.getElementById('planned_end');
+    if (!toggle || !start || !end) return;
+    function enablePlanning() {
+        if (start.value || end.value) toggle.checked = true;
+    }
+    start.addEventListener('input', enablePlanning);
+    end.addEventListener('input', enablePlanning);
+    enablePlanning();
+})();
+</script>
