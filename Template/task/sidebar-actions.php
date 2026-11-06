@@ -14,9 +14,9 @@ $taskId = (int) ($task['id'] ?? 0);
     </a>
 </li>
 <?php endif ?>
-<?php if ($this->user->hasProjectAccess('TaskModificationController', 'edit', $projectId)): ?>
+<?php if ($this->user->hasProjectAccess('TaskPlanController', 'edit', $projectId) && $this->projectRole->canUpdateTask($task)): ?>
 <li>
-    <?= $this->url->link(t('Task planning'), 'TaskModificationController', 'edit', array('task_id' => $taskId, 'project_id' => $projectId)) ?>
+    <?= $this->url->link(t('Task planning'), 'TaskPlanController', 'edit', array('plugin' => 'ScheduleExchange', 'task_id' => $taskId, 'project_id' => $projectId)) ?>
 </li>
 <?php endif ?>
 <?php endif ?>
