@@ -67,6 +67,8 @@ class PlannedSubtaskCreationController extends BaseController
         $withPlan = isset($input['schedule_export_plan']) && (string)$input['schedule_export_plan'] === '1';
         $start = is_string($input['planned_start'] ?? null) ? trim($input['planned_start']) : '';
         $end = is_string($input['planned_end'] ?? null) ? trim($input['planned_end']) : '';
+        // Dates imply planning even when the checkbox was not manually selected.
+        $withPlan = $withPlan || $start !== '' || $end !== '';
         $minutes = $input['workday_minutes'] ?? 480;
         $days = isset($input['workdays']) && is_array($input['workdays']) ? $input['workdays'] : array();
 
