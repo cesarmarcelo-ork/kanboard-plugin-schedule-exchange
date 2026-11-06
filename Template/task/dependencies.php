@@ -33,8 +33,8 @@ $availableTasks = array_values(array_filter($planning_tasks ?? array(), function
 @media(max-width:700px){.schedule-deps__item{align-items:flex-start;flex-direction:column}.schedule-deps__select select{min-width:100%;width:100%}}
 </style>
 
-<section class="panel schedule-deps">
-    <h3><?= t('Planning dependencies') ?></h3>
+<details class="panel schedule-deps" id="schedule-dependencies">
+    <summary style="cursor:pointer;font-weight:600;font-size:1.1em;padding:4px 0;margin-bottom:12px"><?= t('Planning dependencies') ?></summary>
     <p class="schedule-deps__intro">
         <?= t('Define the predecessor activity, the dependency relationship, and any lag or lead time.') ?>
     </p>
@@ -103,10 +103,10 @@ $availableTasks = array_values(array_filter($planning_tasks ?? array(), function
                     </select>
 
                     <select id="relation_type" name="relation_type" required>
-                        <option value="FS"><?= t('FS — Finish to Start') ?></option>
-                        <option value="SS"><?= t('SS — Start to Start') ?></option>
-                        <option value="FF"><?= t('FF — Finish to Finish') ?></option>
-                        <option value="SF"><?= t('SF — Start to Finish') ?></option>
+                        <option value="FS"><?= t('FS - Finish to Start') ?></option>
+                        <option value="SS"><?= t('SS - Start to Start') ?></option>
+                        <option value="FF"><?= t('FF - Finish to Finish') ?></option>
+                        <option value="SF"><?= t('SF - Start to Finish') ?></option>
                     </select>
 
                     <label for="lag_days"><?= t('Lag (days)') ?></label>
@@ -123,4 +123,4 @@ $availableTasks = array_values(array_filter($planning_tasks ?? array(), function
             </form>
         <?php endif ?>
     </div>
-</section>
+</details>
