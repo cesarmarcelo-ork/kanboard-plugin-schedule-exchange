@@ -80,16 +80,6 @@ class Plugin extends Base
 
         $this->template->hook->attachCallable(
             'template:task:show:top',
-            'ScheduleExchange:task/planning',
-            function ($task, $project) {
-                return array(
-                    'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
-                );
-            }
-        );
-
-        $this->template->hook->attachCallable(
-            'template:task:show:top',
             'ScheduleExchange:task/dependencies',
             function ($task, $project) {
                 $projectId = (int) $project['id'];
@@ -105,6 +95,16 @@ class Plugin extends Base
                     'planning_dependencies' => $this->scheduleDependencyModel->getByProject($projectId),
                     'planning_tasks' => $tasks,
                     'planning_task_titles' => $titles,
+                );
+            }
+        );
+
+        $this->template->hook->attachCallable(
+            'template:task:show:top',
+            'ScheduleExchange:task/planning',
+            function ($task, $project) {
+                return array(
+                    'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
                 );
             }
         );
