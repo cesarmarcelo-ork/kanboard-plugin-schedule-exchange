@@ -76,6 +76,7 @@ return array(
     'This subtask changed. Reload the page before saving.' => 'Esta subtarefa foi alterada. Recarregue a página antes de salvar.',
     'Subtask planning - Schedule Exchange' => 'Planejamento de subtarefas - Schedule Exchange',
     'Planning dependencies' => 'Dependências de planejamento',
+    'This link would create a circular planning dependency.' => 'Este vínculo criaria uma dependência circular no planejamento.',
     'Task' => 'Cartão',
     'Subtask' => 'Subtarefa',
     'Predecessor activity' => 'Atividade predecessora',
