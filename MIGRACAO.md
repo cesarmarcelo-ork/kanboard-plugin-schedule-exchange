@@ -1,17 +1,30 @@
-# Migration — ProjectLibreExport 0.1.4-rc2 → ScheduleExport 0.2.0
+# Schedule Exchange - instalação, migração e rollback
 
-This is **not** a parallel add-on. Kanboard discovers installed plugins by directory and PHP namespace.
+Este documento trata da migração do plugin **Schedule Export** para o **Schedule Exchange**. Os nomes `ScheduleExport` e `ScheduleExchange` identificam plugins diferentes. **Não instale os dois em paralelo**: o novo plugin reutiliza componentes e estruturas históricas do planejamento de subtarefas.
 
-1. Back up `/opt/orkflowtech/kanboard/plugins/ProjectLibreExport` intact to `/opt/orkflowtech/kanboard/plugin-backups/`.
-2. Stage `ScheduleExport` from the ZIP as a sibling directory.
-3. Confirm the old directory has been moved out of `plugins/`, then move `ScheduleExport` into it.
-4. Verify `php -l` for Plugin/Controller/Exporter in the running Kanboard container and check the Kanboard Plugins page.
-5. Test authorized project export, filename, MSPDI content and ProjectLibre regression before OPS testing.
+## Antes de modificar a instalação
 
-Do not delete unrelated plugins. Do not modify Docker Compose or bridge v0.9. Do not upload the K-ExportImport snapshot or IFC content to a public GitHub repository.
+1. Confirme a versão do Kanboard e o hash Git do plugin atual.
+2. Faça backup íntegro do diretório do plugin **e do banco de dados Kanboard**.
+3. Preserve cópia do antigo `ScheduleExport` fora do diretório ativo `plugins/`, sem alterá-la nem excluí-la.
+4. Verifique a existência das tabelas `schedule_exchange_dependencies` e das tabelas históricas de planejamento. **Não exclua, recrie ou migre manualmente tabelas** nesta atualização.
+5. Instale a nova revisão em um diretório temporário e execute os testes PHP antes de substituí-la.
 
-**Rollback**: Move new `ScheduleExport` out of `plugins/`, restore backed-up `ProjectLibreExport` to `plugins/`, and refresh Kanboard. A PHP opcache/reload may be required for a long-lived process, depending on runtime configuration; only restart the service if the plugin is not detected after refresh.
+## Instalação
 
-## Upgrade from ScheduleExport 0.2.0-rc1 to 0.2.0
+- O diretório final de instalação é `plugins/ScheduleExchange` (S e E maiúsculos).
+- Utilize um clone Git ou uma distribuição que contenha as classes e os arquivos do repositório atual; nunca copie arquivos isoladamente.
+- Mantenha o ambiente Kanboard em execução apenas se a substituição de arquivos puder ser realizada atomicamente e com rollback disponível.
+- Confirme sintaxe PHP, versão, estado saudável do Kanboard e exportação XML do projeto de testes.
 
-If the release candidate is already installed, **do not reinstall ProjectLibreExport**. The stable release retains the `ScheduleExport` plugin directory and behavior. Back up the current `ScheduleExport` directory, replace only its plugin files with the stable ZIP's `ScheduleExport/` contents, and verify the plugin version and an export before removing the backup. This documentation does **not** imply that the production homelab has been upgraded; the source stable release and production installation are separate steps.
+## Rollback
+
+Se houver falha, restaure **somente o diretório de plugin que foi substituído**, com o backup correspondente. Não restaure o antigo Schedule Export por engano e não reverta o banco sem um procedimento de recuperação explícito e verificado. Se forem feitas alterações de esquema em revisões futuras, a compatibilidade de rollback do banco deverá ser avaliada separadamente.
+
+Um refresh do navegador pode ser suficiente; alterações de opcache ou reinício do contêiner exigem avaliação operacional.
+
+## Situação da versão
+
+A branch `review/ui-planning-20261105` foi testada no homelab, com exportações MSPDI verificadas no ProjectLibre. A branch candidata `release/0.1.0-rc1` declara `0.1.0-rc1`: **não foi publicada uma versão estável do Schedule Exchange** e este documento não autoriza instalação em outros ambientes.
+
+Nenhum dado privado, arquivo real de projeto, credencial ou backup deve ser incluído em commits públicos.

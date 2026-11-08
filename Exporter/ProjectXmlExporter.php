@@ -136,43 +136,57 @@ class ProjectXmlExporter
                 // All other labels (including "duplicated by") are NOT dependencies.
             }
         }
-        // Schedule Exchange planning dependencies use native Kanboard IDs as identity.
-        // For this first end-to-end milestone, task-to-task relations are emitted
-        // directly as MSPDI predecessor links. Relations involving subtasks remain
-        // persisted and will be enabled after the task-to-task XML round-trip is validated.
-        $exchangeDependencyMeta = array();
+        // Validate every native endpoint before constructing any MSPDI links.
         $mspdiTypes = array('FF'=>0, 'FS'=>1, 'SF'=>2, 'SS'=>3);
-        foreach ($planningDependencies as $dependency) {
-            if ((int)($dependency['project_id'] ?? 0) !== (int)$project['id']) {
-                throw new \InvalidArgumentException('Planning dependency belongs to another project');
-            }
-            if (($dependency['from_entity_type'] ?? '') !== 'task' || ($dependency['to_entity_type'] ?? '') !== 'task') {
-                continue;
-            }
-
-            $pred = (int)($dependency['from_task_id'] ?? 0);
-            $succ = (int)($dependency['to_task_id'] ?? 0);
-            if ($pred < 1 || $succ < 1 || $pred === $succ || !isset($byId[$pred]) || !isset($byId[$succ])) {
-                throw new \InvalidArgumentException('Invalid task planning dependency');
-            }
-
-            $relationType = strtoupper((string)($dependency['relation_type'] ?? 'FS'));
-            if (!isset($mspdiTypes[$relationType])) {
-                throw new \InvalidArgumentException('Unsupported planning dependency type');
-            }
-            $lagDays = (int)($dependency['lag_days'] ?? 0);
-
-            $predecessors[$succ][$pred] = true;
-            $exchangeDependencyMeta[$succ][$pred] = array(
-                'Type' => $mspdiTypes[$relationType],
-                // MSPDI LinkLag uses tenths of a minute. With the source 7x24
-                // calendar, one elapsed day is 1440 minutes = 14400 units.
-                'LinkLag' => $lagDays * 14400,
-                'LagFormat' => 7,
-                'relation_type' => $relationType,
-                'lag_days' => $lagDays,
-            );
+        $exchangeRelations = array();
+        $activityEdges = array();
+        foreach ($predecessors as $succ => $preds) {
+            foreach ($preds as $pred => $_) $activityEdges['task:'.$succ]['task:'.$pred] = true;
         }
+        foreach ($planningDependencies as $dep) {
+            if ((int)($dep['project_id'] ?? 0) !== (int)$project['id']) {
+                throw new \InvalidArgumentException('Cross-project planning dependency');
+            }
+            $endpoints = array();
+            foreach (array('from','to') as $side) {
+                $type = (string)($dep[$side.'_entity_type'] ?? '');
+                $card = (int)($dep[$side.'_task_id'] ?? 0);
+                $sub = (int)($dep[$side.'_subtask_id'] ?? 0);
+                if (!isset($byId[$card]) || !in_array($type,array('task','subtask'),true)) {
+                    throw new \InvalidArgumentException('Invalid planning activity endpoint');
+                }
+                if ($type === 'task' && $sub !== 0) {
+                    throw new \InvalidArgumentException('Unexpected subtask on card endpoint');
+                }
+                if ($type === 'subtask') {
+                    if (!$detailedSubtasks || !isset($subIds[$sub])) {
+                        throw new \InvalidArgumentException('Subtask links require detailed XML export');
+                    }
+                    $belongs = false;
+                    foreach ($nativeNotes[$card] ?? array() as $row) {
+                        if ((int)$row['id'] === $sub) { $belongs = true; break; }
+                    }
+                    if (!$belongs) throw new \InvalidArgumentException('Subtask does not belong to endpoint card');
+                }
+                $endpoints[$side] = $type === 'task' ? 'task:'.$card : 'subtask:'.$sub;
+            }
+            if ($endpoints['from'] === $endpoints['to']) throw new \InvalidArgumentException('Self dependency');
+            $relationType = strtoupper((string)($dep['relation_type'] ?? ''));
+            if (!isset($mspdiTypes[$relationType])) throw new \InvalidArgumentException('Invalid dependency relation');
+            $lag = $dep['lag_days'] ?? null;
+            if (!is_numeric($lag) || (float)$lag != (int)$lag || (int)$lag < -3650 || (int)$lag > 3650) {
+                throw new \InvalidArgumentException('Invalid dependency lag');
+            }
+            $key = $endpoints['to'].'<-'.$endpoints['from'];
+            if (isset($exchangeRelations[$key])) throw new \InvalidArgumentException('Duplicate planning dependency');
+            $exchangeRelations[$key] = array(
+                'from'=>$endpoints['from'], 'to'=>$endpoints['to'],
+                'Type'=>$mspdiTypes[$relationType],
+                'LinkLag'=>(int)$lag * 14400, 'LagFormat'=>7
+            );
+            $activityEdges[$endpoints['to']][$endpoints['from']] = true;
+        }
+        if ($this->dependencyCycle($activityEdges)) throw new \InvalidArgumentException('Cycle in planning dependencies');
 
         $parents = array();
         foreach ($parentCandidates as $child => $choices) {
@@ -220,47 +234,6 @@ class ProjectXmlExporter
         if ($detailedSubtasks) {
             foreach (array_keys($nativeNotes) as $taskId) $summary[$taskId] = true;
         }
-        $edges = array();
-        $edgeMeta = array();
-        $notesProject = array(
-            'Fonte: Kanboard. Exportacao somente leitura; nenhuma atividade e alterada.',
-            'Cartoes: ' . count($byId) . '; vinculos EAP: ' . count($parents) . '; subtarefas nativas: ' . count($subIds) . ($detailedSubtasks ? ' (EAP detalhada, sem datas proprias).' : ' (apenas nas observacoes).'),
-            'Politica: NUNCA inferir inicio a partir do prazo e duracao.',
-            'Horario real de Kanboard exportado quando cadastrado; calendario 24 horas/7 dias para evitar ajustes automaticos.',
-            'Calendario de 7 dias permite representar datas originais que caiam em sabados ou domingos.',
-            'SEM DATAS aparece como marco de referencia NAO PLANEJADO, nao como prazo.',
-        );
-        foreach ($predecessors as $succ => $preds) {
-            foreach ($preds as $pred => $_) {
-                // Preserve original card-to-card blocker edges. Native-subtask rows
-                // must not silently remove a dependency that exists in legacy mode.
-                // MSPDI importers may treat promoted native-only parents as summaries.
-                if (isset($cardSummary[$succ]) || isset($cardSummary[$pred])) {
-                    $notesProject[] = 'Dependencia com tarefa-resumo nao exportada: ' . $pred . ' -> ' . $succ;
-                    continue;
-                }
-                $edges[$succ][$pred] = true;
-                if (isset($exchangeDependencyMeta[$succ][$pred])) {
-                    $edgeMeta[$succ][$pred] = $exchangeDependencyMeta[$succ][$pred];
-                }
-            }
-        }
-        if ($this->dependencyCycle($edges)) throw new \InvalidArgumentException('Cycle in Kanboard dependencies');
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<Project xmlns="' . self::NS . '">' . "\n";
-        $xml .= $this->fields(array(
-            'SaveVersion'=>14, 'Name'=>(string) ($project['name'] ?? ''), 'Title'=>(string) ($project['name'] ?? ''),
-            'StartDate'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),
-            'ScheduleFromStart'=>1, 'MinutesPerDay'=>1440, 'MinutesPerWeek'=>10080, 'DaysPerMonth'=>30,
-            'DurationFormat'=>self::DURATION_FORMAT_ELAPSED_DAYS, 'CalendarUID'=>1,
-        ),1);
-        $xml .= $this->calendarXml();
-        $xml .= "  <Tasks>\n";
-        $xml .= "    <Task>\n" . $this->fields(array(
-            'UID'=>0, 'ID'=>0, 'Name'=>(string) ($project['name'] ?? ''), 'OutlineLevel'=>0, 'WBS'=>'0',
-            'Start'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),'Finish'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),
-            'Duration'=>'PT0H0M0S','Notes'=>implode("\n",$notesProject)),3) . "    </Task>\n";
-
         // Parent deadline milestones are appended as the last child, so a
         // Summary deadlines are shown with an auxiliary milestone in MSPDI readers.
         $atEnd = array();
@@ -299,7 +272,76 @@ class ProjectXmlExporter
         }
         foreach ($atEnd as &$closing) usort($closing,function($a,$b) use($levels){return $levels[$b] <=> $levels[$a];});
         unset($closing);
+        // Preallocate one unique XML UID per real subtask and card-period row.
         $nextUid = $ids ? max($ids)+1 : 1;
+        $subtaskUid = array();
+        $ownPeriodUid = array();
+        foreach ($ordered as $cardId) {
+            if (isset($ownPeriodRow[$cardId])) {
+                if ($nextUid > 2147483647) throw new \RuntimeException('Card period UID exhausted');
+                $ownPeriodUid[$cardId] = $nextUid++;
+            }
+            if ($detailedSubtasks) foreach ($nativeNotes[$cardId] ?? array() as $sub) {
+                if ($nextUid > 2147483647) throw new \RuntimeException('Subtask UID exhausted');
+                $subtaskUid[(int)$sub['id']] = $nextUid++;
+            }
+        }
+        $uidOf = function ($key) use ($summary, $ownPeriodUid, $subtaskUid) {
+            if (strpos($key,'task:') === 0) {
+                $id = (int)substr($key,5);
+                if (!isset($summary[$id])) return $id;
+                if (!isset($ownPeriodUid[$id])) {
+                    throw new \InvalidArgumentException('Summary card dependency requires an explicit planned start date');
+                }
+                return $ownPeriodUid[$id];
+            }
+            $id = (int)substr($key,8);
+            if (!isset($subtaskUid[$id])) throw new \InvalidArgumentException('Unknown exported subtask UID');
+            return $subtaskUid[$id];
+        };
+        $edges = array();
+        $edgeMeta = array();
+        $notesProject = array(
+            'Fonte: Kanboard. Exportacao somente leitura; nenhuma atividade e alterada.',
+            'Cartoes: '.count($byId).'; vinculos EAP: '.count($parents).'; subtarefas nativas: '.count($subIds),
+            'Politica: NUNCA inferir inicio a partir do prazo e duracao.',
+            'Horario real de Kanboard exportado quando cadastrado; calendario 24 horas/7 dias para evitar ajustes automaticos.',
+            'Calendario de 7 dias permite representar datas originais que caiam em sabados ou domingos.',
+            'SEM DATAS aparece como marco de referencia NAO PLANEJADO, nao como prazo.',
+        );
+        foreach ($predecessors as $succ => $preds) foreach ($preds as $pred => $_) {
+            if (isset($cardSummary[$succ]) || isset($cardSummary[$pred])) {
+                $notesProject[] = 'Dependencia com tarefa-resumo nao exportada: '.$pred.' -> '.$succ;
+                continue;
+            }
+            $edges[$succ][$pred] = true;
+            $edgeMeta[$succ][$pred] = array('Type'=>1,'LinkLag'=>0,'LagFormat'=>7);
+        }
+        foreach ($exchangeRelations as $rel) {
+            $succUid = $uidOf($rel['to']);
+            $predUid = $uidOf($rel['from']);
+            if ($succUid === $predUid) throw new \InvalidArgumentException('Self-dependent XML UID');
+            $edges[$succUid][$predUid] = true;
+            $edgeMeta[$succUid][$predUid] = array(
+                'Type'=>$rel['Type'],'LinkLag'=>$rel['LinkLag'],'LagFormat'=>$rel['LagFormat']
+            );
+        }
+        if ($this->dependencyCycle($edges)) throw new \InvalidArgumentException('Cycle in XML dependencies');
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<Project xmlns="' . self::NS . '">' . "\n";
+        $xml .= $this->fields(array(
+            'SaveVersion'=>14, 'Name'=>(string) ($project['name'] ?? ''), 'Title'=>(string) ($project['name'] ?? ''),
+            'StartDate'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),
+            'ScheduleFromStart'=>1, 'MinutesPerDay'=>1440, 'MinutesPerWeek'=>10080, 'DaysPerMonth'=>30,
+            'DurationFormat'=>self::DURATION_FORMAT_ELAPSED_DAYS, 'CalendarUID'=>1,
+        ),1);
+        $xml .= $this->calendarXml();
+        $xml .= "  <Tasks>\n";
+        $xml .= "    <Task>\n" . $this->fields(array(
+            'UID'=>0, 'ID'=>0, 'Name'=>(string) ($project['name'] ?? ''), 'OutlineLevel'=>0, 'WBS'=>'0',
+            'Start'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),'Finish'=>$this->iso($anchorDate,self::ANCHOR_CLOCK),
+            'Duration'=>'PT0H0M0S','Notes'=>implode("\n",$notesProject)),3) . "    </Task>\n";
+
         $nextId=1;
         foreach ($ordered as $pos => $id) {
             $task = $byId[$id];
@@ -366,17 +408,7 @@ class ProjectXmlExporter
             }
             $fields['Notes']=$notes;
             $xml .= "    <Task>\n" . $this->fields($fields,3);
-            foreach (array_keys($edges[$id] ?? array()) as $pred) {
-                $meta = $edgeMeta[$id][$pred] ?? array('Type'=>1,'LinkLag'=>0,'LagFormat'=>7);
-                $xml .= "      <PredecessorLink>\n";
-                $xml .= $this->fields(array(
-                    'PredecessorUID'=>$pred,
-                    'Type'=>$meta['Type'],
-                    'LinkLag'=>$meta['LinkLag'],
-                    'LagFormat'=>$meta['LagFormat']
-                ),4);
-                $xml .= "      </PredecessorLink>\n";
-            }
+            $xml .= $this->predecessorLinksXml($edges,$edgeMeta,$id);
             $xml .= "    </Task>\n";
             $closingOwners = array_unique(array_merge($ownAtEnd[$pos] ?? array(), $subAtEnd[$pos] ?? array(), $atEnd[$pos] ?? array()));
             usort($closingOwners, function ($a, $b) use ($levels) { return $levels[$b] <=> $levels[$a]; });
@@ -391,7 +423,7 @@ class ProjectXmlExporter
                 $ownFinish = $this->sourceIso($ownTask['date_due'] ?? 0);
                 $ownHasPeriod = $ownFinish !== null;
                 $ownFields = array(
-                    'UID'=>$nextUid++, 'ID'=>$nextId++,
+                    'UID'=>$ownPeriodUid[$closingOwner], 'ID'=>$nextId++,
                     'Name'=>($ownHasPeriod ? 'Periodo do cartao: ' : 'Inicio do cartao: ') . (string)($ownTask['title'] ?? ('#' . $closingOwner)),
                     'WBS'=>$wbs[$closingOwner] . '.' . (count($children[$closingOwner] ?? array()) + 1),
                     'OutlineLevel'=>$levels[$closingOwner] + 1,
@@ -406,7 +438,9 @@ class ProjectXmlExporter
                         "\nNao e um novo cartao nem uma subtarefa; nao implica duracao das subtarefas."
                 );
                 if ($ownHasPeriod) $ownFields['Deadline'] = $ownFinish;
-                $xml .= "    <Task>\n" . $this->fields($ownFields,3) . "    </Task>\n";
+                $xml .= "    <Task>\n" . $this->fields($ownFields,3);
+                $xml .= $this->predecessorLinksXml($edges,$edgeMeta,$ownPeriodUid[$closingOwner]);
+                $xml .= "    </Task>\n";
             }
             if (in_array($closingOwner, $subAtEnd[$pos] ?? array(), true)) {
                 $parentId = $closingOwner;
@@ -434,7 +468,7 @@ class ProjectXmlExporter
                             : "\nSubtarefa nativa SEM DATAS PROPRIAS; tarefa nao planejada de duracao ZERO, posicionada visualmente no limite do cartao quando disponivel; NAO e agendamento de subtarefa.") .
                         "\nEstimated effort Kanboard (hours): " . (string)($sub['time_estimated'] ?? '0');
                     $subFields = array(
-                        'UID'=>$nextUid++, 'ID'=>$nextId++,
+                        'UID'=>$subtaskUid[(int)$sub['id']], 'ID'=>$nextId++,
                         'Name'=>$subName . ($period ? '' : ' [SEM DATAS — NAO PLANEJADA]'),
                         'WBS'=>$wbs[$parentId] . '.' . $number,
                         'OutlineLevel'=>$levels[$parentId] + 1,
@@ -456,7 +490,9 @@ class ProjectXmlExporter
                         $subFields['ConstraintDate'] = $subStart;
                     }
                     $subFields['Notes'] = $subNotes;
-                    $xml .= "    <Task>\n" . $this->fields($subFields,3) . "    </Task>\n";
+                    $xml .= "    <Task>\n" . $this->fields($subFields,3);
+                    $xml .= $this->predecessorLinksXml($edges,$edgeMeta,$subtaskUid[(int)$sub['id']]);
+                    $xml .= "    </Task>\n";
                 }
             }
             if (in_array($closingOwner, $atEnd[$pos] ?? array(), true)) {
@@ -478,6 +514,21 @@ class ProjectXmlExporter
             }
         }
         return $xml . "  </Tasks>\n</Project>\n";
+    }
+
+    private function predecessorLinksXml(array $edges, array $edgeMeta, $successorUid)
+    {
+        $xml = '';
+        foreach (array_keys($edges[$successorUid] ?? array()) as $pred) {
+            $meta = $edgeMeta[$successorUid][$pred] ?? array('Type'=>1,'LinkLag'=>0,'LagFormat'=>7);
+            $xml .= "      <PredecessorLink>\n";
+            $xml .= $this->fields(array(
+                'PredecessorUID'=>$pred, 'Type'=>$meta['Type'],
+                'LinkLag'=>$meta['LinkLag'], 'LagFormat'=>$meta['LagFormat']
+            ),4);
+            $xml .= "      </PredecessorLink>\n";
+        }
+        return $xml;
     }
 
     private function parseLocalPeriodTimestamp($iso)

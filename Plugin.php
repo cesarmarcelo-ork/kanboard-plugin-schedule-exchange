@@ -37,6 +37,8 @@ class Plugin extends Base
         $this->projectAccessMap->add('SubtaskPlanController', 'remove', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('PlannedSubtaskCreationController', 'create', Role::PROJECT_MEMBER);
         $this->projectAccessMap->add('PlannedSubtaskCreationController', 'save', Role::PROJECT_MEMBER);
+        $this->projectAccessMap->add('TaskPlanController', 'edit', Role::PROJECT_MEMBER);
+        $this->projectAccessMap->add('TaskPlanController', 'save', Role::PROJECT_MEMBER);
         $this->template->hook->attach(
             'template:subtask:table:header:before-timetracking',
             'ScheduleExchange:subtask/period-header'
@@ -78,16 +80,6 @@ class Plugin extends Base
 
         $this->template->hook->attachCallable(
             'template:task:show:top',
-            'ScheduleExchange:task/planning',
-            function ($task, $project) {
-                return array(
-                    'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
-                );
-            }
-        );
-
-        $this->template->hook->attachCallable(
-            'template:task:show:top',
             'ScheduleExchange:task/dependencies',
             function ($task, $project) {
                 $projectId = (int) $project['id'];
@@ -99,10 +91,40 @@ class Plugin extends Base
                     $titles[(int)$candidate['id']] = (string)$candidate['title'];
                 }
 
+                $subtasksByTask = array();
+                $subtaskTitles = array();
+                // Native subtasks are scoped to the current project via task_id.
+                if (!empty($titles)) {
+                    $ids = array_keys($titles);
+                    foreach (array_chunk($ids, 400) as $chunk) {
+                        $marks = implode(',', array_fill(0, count($chunk), '?'));
+                        $stmt = $this->db->getConnection()->prepare(
+                            'SELECT id, task_id, title FROM subtasks WHERE task_id IN (' . $marks . ') ORDER BY position, id'
+                        );
+                        $stmt->execute($chunk);
+                        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $sub) {
+                            $subtasksByTask[(int)$sub['task_id']][] = $sub;
+                            $subtaskTitles[(int)$sub['id']] = (string)$sub['title'];
+                        }
+                    }
+                }
+
                 return array(
                     'planning_dependencies' => $this->scheduleDependencyModel->getByProject($projectId),
                     'planning_tasks' => $tasks,
                     'planning_task_titles' => $titles,
+                    'planning_subtasks_by_task' => $subtasksByTask,
+                    'planning_subtask_titles' => $subtaskTitles,
+                );
+            }
+        );
+
+        $this->template->hook->attachCallable(
+            'template:task:show:top',
+            'ScheduleExchange:task/planning',
+            function ($task, $project) {
+                return array(
+                    'subtasks' => $this->subtaskModel->getAll((int) $task['id']),
                 );
             }
         );
@@ -130,7 +152,7 @@ class Plugin extends Base
 
     public function getPluginVersion()
     {
-        return '0.1.0-dev';
+        return '0.1.0';
     }
 
     public function getPluginHomepage()
