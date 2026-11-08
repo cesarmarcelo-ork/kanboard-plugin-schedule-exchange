@@ -18,7 +18,7 @@ REQUIRED = [
     "Schema/Mysql.php",
     "Schema/Postgres.php",
 ]
-VERSION = "0.1.0-rc1"
+VERSION = "0.1.0"
 
 def main():
     parser = argparse.ArgumentParser()
