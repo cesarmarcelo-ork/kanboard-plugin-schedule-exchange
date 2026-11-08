@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-dev - Schedule Exchange (release candidate under review, not published)
+## 0.1.0-rc1 - Schedule Exchange (release candidate, not published as stable)
 
 - Separate plugin identity `ScheduleExchange` and private development branch `review/ui-planning-20261105`; this is **not** the former Schedule Export v0.6.1 release.
 - Independent task and subtask planning panels; four combinations of predecessor/successor entities with FS, SS, FF and SF and integer positive/negative lags.
