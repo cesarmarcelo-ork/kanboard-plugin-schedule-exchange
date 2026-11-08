@@ -2,7 +2,7 @@
 
 Kanboard plugin for **native subtask planning**, **task/subtask planning dependencies**, and **Microsoft Project XML (MSPDI) export**.
 
-**Status:** development branch, release candidate under review. Plugin metadata currently reports `0.1.0-dev`; **no stable Schedule Exchange release has been published**. The previous **Schedule Export 0.6.1** is a separate, superseded codebase, not the version of this plugin.
+**Status:** development branch, release candidate under review. Plugin metadata reports `0.1.0-rc1` on this release-candidate branch; **no stable Schedule Exchange release has been published**. The previous **Schedule Export 0.6.1** is a separate, superseded codebase, not the version of this plugin.
 
 **Compatibility:** Kanboard >= 1.2.50. The GitHub Actions matrix tests Kanboard 1.2.50 and 1.2.57 and PHP 8.1–8.4.
 
