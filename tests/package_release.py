@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES = ["Plugin.php", "Controller", "Db", "Exporter", "Helper", "Locale", "Model", "Template", "Asset", "Assets"]
+SOURCES = ["Plugin.php", "Controller", "Db", "Exporter", "Helper", "Locale", "Model", "Template", "Schema", "Service", "Asset", "Assets"]
 REQUIRED = [
     "Plugin.php",
     "Controller/ScheduleExchangeController.php",
@@ -14,6 +14,9 @@ REQUIRED = [
     "Model/PlanningDependencyModel.php",
     "Exporter/ProjectXmlExporter.php",
     "Template/task/dependencies.php",
+    "Schema/Sqlite.php",
+    "Schema/Mysql.php",
+    "Schema/Postgres.php",
 ]
 VERSION = "0.1.0-rc1"
 
