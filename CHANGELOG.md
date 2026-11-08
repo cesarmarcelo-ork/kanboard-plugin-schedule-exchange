@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.0-dev - Schedule Exchange (release candidate under review, not published)
+
+- Separate plugin identity `ScheduleExchange` and private development branch `review/ui-planning-20261105`; this is **not** the former Schedule Export v0.6.1 release.
+- Independent task and subtask planning panels; four combinations of predecessor/successor entities with FS, SS, FF and SF and integer positive/negative lags.
+- Persistence, project/ownership validation, duplicate and circular-link rejection.
+- Detailed MSPDI exporter resolves card/subtask identities to unique XML UIDs. Card summary dependencies use explicit original-period auxiliary rows to avoid summary-row ambiguity.
+- Export rejects invalid or unrepresentable planning links instead of silently omitting them; original Kanboard activity dates remain unchanged.
+- Manual ProjectLibre acceptance of all four subtask relation types and all four endpoint combinations, including +1/-1 day offsets; see `docs/ACCEPTANCE-SCHEDULE-EXCHANGE.md`.
+- Known limitation: duration and calendar interpretation varies by MSPDI importer. No Kanboard auto-scheduling, CPM engine or resource leveling is introduced.
+- Release gates remain: verify candidate package, CI, migration/rollback and documented interoperability limitations before publishing a stable version.
+
 ## 0.6.1 — 2026-11-03
 
 - Replaces the single planning column with separate estimated start and estimated finish columns.
