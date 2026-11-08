@@ -25,6 +25,6 @@ Um refresh do navegador pode ser suficiente; alterações de opcache ou reiníci
 
 ## Situação da versão
 
-A branch `review/ui-planning-20261105` foi testada no homelab, com exportações MSPDI verificadas no ProjectLibre. O código ainda informa `0.1.0-dev`: **não foi publicada uma versão estável do Schedule Exchange** e este documento não autoriza instalação em outros ambientes.
+A branch `review/ui-planning-20261105` foi testada no homelab, com exportações MSPDI verificadas no ProjectLibre. A branch candidata `release/0.1.0-rc1` declara `0.1.0-rc1`: **não foi publicada uma versão estável do Schedule Exchange** e este documento não autoriza instalação em outros ambientes.
 
 Nenhum dado privado, arquivo real de projeto, credencial ou backup deve ser incluído em commits públicos.
