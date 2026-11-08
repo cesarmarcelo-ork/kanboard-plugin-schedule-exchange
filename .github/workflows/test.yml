@@ -76,20 +76,20 @@ jobs:
         run: php tests/test_completion_export.php
       - name: Verify subtask date columns
         run: php tests/test_date_columns.php
-      - name: Build and verify installable 0.1.0-rc1 package
+      - name: Build and verify installable 0.1.0 package
         if: ${{ matrix.php == '8.4' }}
         run: |
-          python3 tests/package_release.py dist/ScheduleExchange-0.1.0-rc1.zip
+          python3 tests/package_release.py dist/ScheduleExchange-0.1.0.zip
           mkdir -p dist/extracted
-          python3 -m zipfile -e dist/ScheduleExchange-0.1.0-rc1.zip dist/extracted
+          python3 -m zipfile -e dist/ScheduleExchange-0.1.0.zip dist/extracted
           find dist/extracted/ScheduleExchange -name '*.php' -print0 | xargs -0 -n1 php -l
 
-      - name: Upload installable 0.1.0-rc1 package for review
+      - name: Upload installable 0.1.0 package for review
         if: ${{ matrix.php == '8.4' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ScheduleExchange-0.1.0-rc1-installable
-          path: dist/ScheduleExchange-0.1.0-rc1.zip
+          name: ScheduleExchange-0.1.0-installable
+          path: dist/ScheduleExchange-0.1.0.zip
           if-no-files-found: error
 
       - name: Upload synthetic v0.3.0 MSPDI sample for ProjectLibre review
