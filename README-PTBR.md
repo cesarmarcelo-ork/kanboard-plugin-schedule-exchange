@@ -2,7 +2,7 @@
 
 Plugin para **planejamento individual de subtarefas**, **cadastro de dependências entre cartões e subtarefas** e **exportação XML Microsoft Project (MSPDI)**.
 
-**Situação:** branch de desenvolvimento em revisão para uma versão candidata. A versão informada no código é `0.1.0-rc1` nesta branch candidata. **Ainda não há uma versão estável publicada do Schedule Exchange.** O antigo **Schedule Export 0.6.1** é outro estágio do projeto e não corresponde à versão atual.
+**Situação:** v0.1.0 preparada para publicação estável após homologação funcional. A tag e a release no GitHub ainda precisam ser publicadas. O antigo Schedule Export 0.6.1 é outro estágio do projeto.
 
 **Compatibilidade declarada:** Kanboard >= 1.2.50. Matriz automatizada: Kanboard 1.2.50/1.2.57 e PHP 8.1–8.4.
 
