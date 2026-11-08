@@ -14,7 +14,7 @@ Kanboard plugin for **native subtask planning**, **task/subtask planning depende
 - Schedule Exchange **does not recalculate, level resources, or automatically move dates**. Scheduling engines and Gantt applications interpret the exported project independently.
 - XML export is read-only; it never writes back recalculated dates.
 
-## Installation for testing
+## Installation and safe migration
 
 1. Back up the current plugin directory and the Kanboard database.
 2. Install this repository into `plugins/ScheduleExchange` using the exact directory name, **not** `plugins/ScheduleExport`.
