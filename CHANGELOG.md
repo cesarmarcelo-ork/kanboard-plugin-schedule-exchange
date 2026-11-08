@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-rc1 - Schedule Exchange (release candidate, not published as stable)
+## 0.1.0 - Schedule Exchange (estável; homologação funcional)
 
 - Separate plugin identity `ScheduleExchange` and private development branch `review/ui-planning-20261105`; this is **not** the former Schedule Export v0.6.1 release.
 - Independent task and subtask planning panels; four combinations of predecessor/successor entities with FS, SS, FF and SF and integer positive/negative lags.
@@ -9,7 +9,7 @@
 - Export rejects invalid or unrepresentable planning links instead of silently omitting them; original Kanboard activity dates remain unchanged.
 - Manual ProjectLibre acceptance of all four subtask relation types and all four endpoint combinations, including +1/-1 day offsets; see `docs/ACCEPTANCE-SCHEDULE-EXCHANGE.md`.
 - Known limitation: duration and calendar interpretation varies by MSPDI importer. No Kanboard auto-scheduling, CPM engine or resource leveling is introduced.
-- Release gates remain: verify candidate package, CI, migration/rollback and documented interoperability limitations before publishing a stable version.
+- Release gates: acceptance performed in homelab (ProjectLibre) and packaged RC installed and verified in isolated Kanboard 1.2.50; SQLite migration and plugin UI/export checked. Stable release still requires published GitHub tag/release and final CI.
 
 ## 0.6.1 — 2026-11-03
 
