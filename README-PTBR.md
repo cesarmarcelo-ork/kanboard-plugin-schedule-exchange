@@ -2,9 +2,11 @@
 
 Plugin para **planejamento individual de subtarefas**, **cadastro de dependências entre cartões e subtarefas** e **exportação XML Microsoft Project (MSPDI)**.
 
-**Situação:** v0.1.0 preparada para publicação estável após homologação funcional. A tag e a release no GitHub ainda precisam ser publicadas. O antigo Schedule Export 0.6.1 é outro estágio do projeto.
+**Situação:** v0.1.0 publicada como versão estável. A v0.1.1 é uma atualização corretiva em preparação; sua release no GitHub e a atualização do catálogo oficial ainda estão pendentes. O antigo Schedule Export 0.6.1 foi substituído.
 
 **Compatibilidade declarada:** Kanboard >= 1.2.50. Matriz automatizada: Kanboard 1.2.50/1.2.57 e PHP 8.1–8.4.
+
+**Correção v0.1.1:** antes de exportar XML, o plugin identifica cartões e subtarefas com datas ou horários de início/término inconsistentes, informando ID, título e valores originais. A exportação inválida é interrompida com uma mensagem clara, sem alterar os dados do Kanboard.
 
 ## Responsabilidades
 
