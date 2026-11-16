@@ -2,9 +2,11 @@
 
 Kanboard plugin for **native subtask planning**, **task/subtask planning dependencies**, and **Microsoft Project XML (MSPDI) export**.
 
-**Status:** v0.1.0 stable publication candidate, functionally accepted and ready for the GitHub release process. The previous Schedule Export 0.6.1 is a separate, superseded codebase; the stable tag/release must be published before calling distribution complete.
+**Status:** v0.1.0 is the published stable version. v0.1.1 is a corrective update prepared for release; publication of the v0.1.1 GitHub release and official catalog update is still pending. The former Schedule Export 0.6.1 is superseded.
 
 **Compatibility:** Kanboard >= 1.2.50. The GitHub Actions matrix tests Kanboard 1.2.50 and 1.2.57 and PHP 8.1–8.4.
+
+**v0.1.1 date validation:** MSPDI export now identifies cards and subtasks with inconsistent planned start/finish timestamps (ID, title and both values). Invalid schedules are rejected with a readable message instead of an internal error. No dates are changed automatically.
 
 ## Scope and responsibilities
 
