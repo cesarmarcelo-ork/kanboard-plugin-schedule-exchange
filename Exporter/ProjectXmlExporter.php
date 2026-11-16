@@ -9,6 +9,26 @@ use DateTimeZone;
  * Read-only MSPDI generator. The Kanboard task fields are the only scheduling
  * authority. True timestamps are retained with a 7x24 calendar.
  */
+/**
+ * Invalid date ranges identified before writing an MSPDI document.
+ * Exposes only user-facing issue descriptions, not internal stack traces.
+ */
+class ExportDateValidationException extends \InvalidArgumentException
+{
+    private $issues;
+
+    public function __construct(array $issues)
+    {
+        $this->issues = $issues;
+        parent::__construct('Invalid scheduling dates on ' . count($issues) . ' activity record(s)');
+    }
+
+    public function getIssues()
+    {
+        return $this->issues;
+    }
+}
+
 class ProjectXmlExporter
 {
     const NS = 'http://schemas.microsoft.com/project';
@@ -52,6 +72,8 @@ class ProjectXmlExporter
                 $nativeNotes[$parentId][] = $sub;
             }
         }
+        // Validate complete source timestamps (not only Y-m-d) before creating XML.
+        $this->validateDatePeriods($byId, $nativeNotes, $persistedPlans, $detailedSubtasks);
         // Only explicitly declared periods are plotted. Native Kanboard subtasks
         // have no own start/finish fields; never derive them from parent dates.
         $subtaskPeriods = array();
@@ -366,7 +388,7 @@ class ProjectXmlExporter
                     }
                 }
             }
-            if ($hasStart && $hasDue && $due < $start) {
+            if ($hasStart && $hasDue && (int)$task['date_due'] < (int)$task['date_started']) {
                 // No silent clamping. The source must be corrected first.
                 throw new \InvalidArgumentException('Due date precedes start date for Kanboard card ' . $id);
             }
@@ -514,6 +536,93 @@ class ProjectXmlExporter
             }
         }
         return $xml . "  </Tasks>\n</Project>\n";
+    }
+
+    /**
+     * Collect all invalid date ranges while retaining the original source values.
+     * Missing boundaries are intentionally allowed for unscheduled activities.
+     */
+    private function validateDatePeriods(array $byId, array $nativeNotes, array $persistedPlans, $detailedSubtasks)
+    {
+        $issues = array();
+        foreach ($byId as $cardId => $task) {
+            $start = $task['date_started'] ?? 0;
+            $finish = $task['date_due'] ?? 0;
+            if ($this->timestampDate($start) !== null && $this->timestampDate($finish) !== null && (int)$finish < (int)$start) {
+                $issues[] = 'Cartão #' . $cardId . ' "' . (string)($task['title'] ?? '') .
+                    '": início ' . $this->rawDateSeconds($start) . ', término ' . $this->rawDateSeconds($finish) .
+                    ' (término anterior ao início).';
+            }
+        }
+
+        if ($detailedSubtasks) {
+            $subtaskNames = array();
+            foreach ($nativeNotes as $cardId => $rows) {
+                foreach ($rows as $sub) {
+                    $subtaskNames[(int)$sub['id']] = array(
+                        'card_id' => (int)$cardId,
+                        'name' => (string)($sub['title'] ?? '')
+                    );
+                }
+            }
+            foreach ($byId as $cardId => $task) {
+                foreach (preg_split('/\r\n|\n|\r/', (string)($task['description'] ?? '')) as $line) {
+                    $line = trim($line);
+                    if (strpos($line, '[SE_SUBTASK_PERIOD') !== 0) continue;
+                    if (!preg_match('/^\[SE_SUBTASK_PERIOD id=([1-9][0-9]*) start=([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) end=([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})\]$/', $line, $match)) {
+                        $issues[] = 'Cartão #' . $cardId . ' "' . (string)($task['title'] ?? '') .
+                            '": declaração SE_SUBTASK_PERIOD inválida; revisar o período da subtarefa na descrição.';
+                        continue;
+                    }
+                    $subId = (int)$match[1];
+                    if (!isset($subtaskNames[$subId]) || $subtaskNames[$subId]['card_id'] !== (int)$cardId) {
+                        continue; // Existing ownership checks retain responsibility for invalid references.
+                    }
+                    $label = 'Subtarefa #' . $subId . ' "' . $subtaskNames[$subId]['name'] .
+                        '" (cartão #' . $cardId . ' "' . (string)($task['title'] ?? '') . '")';
+                    try {
+                        $start = $this->parseLocalPeriodTimestamp($match[2]);
+                        $finish = $this->parseLocalPeriodTimestamp($match[3]);
+                        if ($finish <= $start) {
+                            $issues[] = $label . ': início ' . $match[2] . ', término ' . $match[3] .
+                                ' (período declarado na descrição: término não posterior ao início).';
+                        }
+                    } catch (\InvalidArgumentException $e) {
+                        $issues[] = $label . ': início ' . $match[2] . ', término ' . $match[3] .
+                            ' (data/hora inválida na descrição).';
+                    }
+                }
+            }
+            foreach ($persistedPlans as $subId => $plan) {
+                $subId = (int)$subId;
+                $cardId = (int)($plan['task_id'] ?? 0);
+                if (!isset($subtaskNames[$subId]) || $subtaskNames[$subId]['card_id'] !== $cardId || !isset($byId[$cardId])) {
+                    continue; // Existing plan ownership validation must still reject invalid references.
+                }
+                $startText = (string)($plan['planned_start'] ?? '');
+                $finishText = (string)($plan['planned_end'] ?? '');
+                $label = 'Subtarefa #' . $subId . ' "' . $subtaskNames[$subId]['name'] .
+                    '" (cartão #' . $cardId . ' "' . (string)($byId[$cardId]['title'] ?? '') . '")';
+                try {
+                    $start = $this->parseLocalPeriodTimestamp($startText);
+                    $finish = $this->parseLocalPeriodTimestamp($finishText);
+                    if ($finish <= $start) {
+                        $issues[] = $label . ': início ' . $startText . ', término ' . $finishText .
+                            ' (planejamento persistido: término não posterior ao início).';
+                    }
+                } catch (\InvalidArgumentException $e) {
+                    $issues[] = $label . ': início ' . ($startText ?: 'não informado') .
+                        ', término ' . ($finishText ?: 'não informado') .
+                        ' (data/hora inválida no planejamento).';
+                }
+            }
+        }
+        if ($issues) throw new ExportDateValidationException($issues);
+    }
+
+    private function rawDateSeconds($timestamp)
+    {
+        return $this->localTime($timestamp, 'd/m/Y H:i:s');
     }
 
     private function predecessorLinksXml(array $edges, array $edgeMeta, $successorUid)
