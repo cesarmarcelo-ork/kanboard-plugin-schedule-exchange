@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 - Correção de validação de datas MSPDI (2026-11-16)
+
+- Corrige o erro interno `Finish before start in Kanboard` provocado por datas ou horários de início e término invertidos, inclusive no mesmo dia.
+- Identifica IDs, títulos e datas das atividades com inconsistências em cartões e subtarefas planejadas, reunindo os problemas antes da exportação.
+- Exibe mensagem clara (HTTP 422), sem XML parcial, quando houver datas inválidas; cronogramas válidos continuam exportáveis.
+- Preserva planejamento de subtarefas, dependências FS/SS/FF/SF, defasagens e estrutura MSPDI.
+- Testes automatizados de regressão aprovados com PHP 8.1–8.4 e Kanboard 1.2.50/1.2.57 para a correção; validação funcional no Kanboard Beta continua necessária.
+
+
 ## 0.1.0 - Schedule Exchange (estável; homologação funcional)
 
 - Separate plugin identity `ScheduleExchange` and private development branch `review/ui-planning-20261105`; this is **not** the former Schedule Export v0.6.1 release.
